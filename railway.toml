@@ -1,0 +1,16 @@
+[build]
+  builder = "DOCKERFILE"
+  dockerfilePath = "docker/Dockerfile"
+
+[build.args]
+  RAILS_ENV = "production"
+  NODE_ENV = "production"
+  BUNDLE_WITHOUT = "development:test"
+
+[deploy]
+  startCommand = "bundle exec rails ip_lookup:setup && bin/rails server -p $PORT -b 0.0.0.0 -e production"
+  releaseCommand = "POSTGRES_STATEMENT_TIMEOUT=600s bundle exec rails db:chatwoot_prepare"
+  healthcheckPath = "/auth/sign_in"
+  healthcheckTimeout = 300
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
