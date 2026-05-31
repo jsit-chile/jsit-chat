@@ -87,7 +87,9 @@ RUN if [ "$RAILS_ENV" = "production" ]; then \
   fi
 
 # Generate .git_sha file with current commit hash
-RUN git rev-parse HEAD > /app/.git_sha
+# Falls back to SOURCE_VERSION build arg (provided by Railway/CI) when .git is not available
+ARG SOURCE_VERSION=""
+RUN git rev-parse HEAD > /app/.git_sha 2>/dev/null || echo "${SOURCE_VERSION}" > /app/.git_sha
 
 # Remove unnecessary files
 RUN rm -rf /gems/ruby/3.4.0/cache/*.gem \
