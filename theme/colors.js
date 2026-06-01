@@ -1,6 +1,4 @@
 const {
-  blue,
-  blueDark,
   green,
   greenDark,
   yellow,
@@ -14,19 +12,20 @@ const {
 } = require('@radix-ui/colors');
 
 export const colors = {
+  // JSIT brand primary — "Deep Cyber" electric blue (#2F81F7)
   woot: {
-    25: blue.blue2,
-    50: blue.blue3,
-    75: blue.blue4,
-    100: blue.blue5,
-    200: blue.blue7,
-    300: blue.blue8,
-    400: blueDark.blue11,
-    500: blueDark.blue10,
-    600: blueDark.blue9,
-    700: blueDark.blue8,
-    800: blueDark.blue6,
-    900: blueDark.blue2,
+    25: '#EEF4FE',
+    50: '#D9E8FD',
+    75: '#C0D9FC',
+    100: '#A7CAFB',
+    200: '#79AEF9',
+    300: '#5495F8',
+    400: '#3E89F7',
+    500: '#2F81F7',
+    600: '#1C6AE0',
+    700: '#1856BC',
+    800: '#134496',
+    900: '#0D2C60',
   },
   green: {
     50: greenDark.green12,
@@ -226,7 +225,7 @@ export const colors = {
     },
 
     black: '#000000',
-    brand: '#2781F6',
+    brand: '#2F81F7',
     portal: 'var(--dynamic-portal-color)',
     'portal-soft': 'var(--dynamic-portal-color-soft)',
     'portal-faint': 'var(--dynamic-portal-color-faint)',
