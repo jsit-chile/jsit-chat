@@ -25,6 +25,31 @@ By default, it renders:
   <%= vite_client_tag %>
   <%= vite_javascript_tag 'superadmin' %>
   <%= csrf_meta_tags %>
+  <style>
+    /* ── MPA View Transitions (Chrome 126+ / Safari 18+) ── */
+    @view-transition { navigation: auto; }
+
+    @keyframes sa-enter {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes sa-leave {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0; transform: translateY(-6px); }
+    }
+
+    ::view-transition-new(root) {
+      animation: sa-enter 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+    ::view-transition-old(root) {
+      animation: sa-leave 200ms ease-in both;
+    }
+
+    /* ── Fallback: fade-in on load for all browsers ── */
+    main[role="main"] {
+      animation: sa-enter 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+  </style>
 </head>
 <body class="antialiased w-full h-full">
   <%= render "icons" %>
@@ -36,5 +61,29 @@ By default, it renders:
     </main>
   </div>
   <%= render "javascript" %>
+  <script>
+    /* Fallback fade-out for browsers without View Transitions */
+    if (!document.startViewTransition) {
+      document.addEventListener('click', function(e) {
+        var link = e.target.closest('a[href]');
+        if (!link) return;
+        try {
+          var url = new URL(link.href);
+          if (url.hostname !== location.hostname) return;
+          if (url.hash && url.pathname === location.pathname) return;
+        } catch(_) { return; }
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (link.target === '_blank') return;
+        var main = document.querySelector('main[role="main"]');
+        if (!main) return;
+        e.preventDefault();
+        main.style.transition = 'opacity 200ms ease-in, transform 200ms ease-in';
+        main.style.opacity = '0';
+        main.style.transform = 'translateY(-6px)';
+        var dest = link.href;
+        setTimeout(function() { window.location.href = dest; }, 200);
+      });
+    }
+  </script>
 </body>
 </html>
