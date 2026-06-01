@@ -43,6 +43,16 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
   # See https://administrate-prototype.herokuapp.com/customizing_controller_actions
   # for more information
 
+  def index
+    if request.format.json?
+      query = params[:search].to_s.strip
+      resources = Account.where('name ILIKE ? OR id::text ILIKE ?', "%#{query}%", "%#{query}%")
+                         .order(id: :desc).limit(50)
+      return render json: { resources: resources.map { |r| { id: r.id, dashboard_display_name: "#{r.id} — #{r.name}" } } }
+    end
+    super
+  end
+
   def seed
     Internal::SeedAccountJob.perform_later(requested_resource)
     # rubocop:disable Rails/I18nLocaleTexts

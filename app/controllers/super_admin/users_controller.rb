@@ -2,6 +2,17 @@ class SuperAdmin::UsersController < SuperAdmin::ApplicationController
   # Overwrite any of the RESTful controller actions to implement custom behavior
   # For example, you may want to send an email after a foo is updated.
 
+  def index
+    if request.format.json?
+      query = params[:search].to_s.strip
+      resources = User.where('name ILIKE ? OR email ILIKE ? OR id::text ILIKE ?',
+                             "%#{query}%", "%#{query}%", "%#{query}%")
+                      .order(id: :desc).limit(50)
+      return render json: { resources: resources.map { |r| { id: r.id, dashboard_display_name: "#{r.email} — #{r.name}" } } }
+    end
+    super
+  end
+
   def create
     resource = resource_class.new(resource_params)
     authorize_resource(resource)

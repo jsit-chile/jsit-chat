@@ -20,6 +20,50 @@ by providing a `content_for(:javascript)` block.
   <% end %>
 <% end %>
 
+<script>
+// Patch selectize BelongsToSearch: preload options on focus without requiring input.
+// The gem's default load skips empty queries; we override it to call the backend
+// with an empty search so the dropdown shows results immediately on click.
+$(function() {
+  function patchBelongsToSearch() {
+    $('.field-unit--belongs-to-search select').each(function() {
+      var sel = this.selectize;
+      if (!sel || sel._jsitPatched) return;
+      sel._jsitPatched = true;
+
+      var url = sel.settings.searchUrl; // e.g. "/super_admin/accounts.json?search="
+
+      // Replace load to allow empty queries
+      sel.settings.load = function(query, callback) {
+        $.ajax({
+          url: url + encodeURIComponent(query),
+          type: 'GET',
+          error: function() { callback(); },
+          success: function(res) { callback(res.resources || []); }
+        });
+      };
+
+      // Preload on focus so options appear without typing
+      sel.settings.preload = 'focus';
+
+      // Trigger an immediate load to populate the list right now
+      sel.load(function(callback) {
+        $.ajax({
+          url: url,
+          type: 'GET',
+          error: function() { callback(); },
+          success: function(res) { callback(res.resources || []); }
+        });
+      });
+    });
+  }
+
+  // Run after belongs_to_search.js initializes selectize (also on Turbo/ajax nav)
+  setTimeout(patchBelongsToSearch, 150);
+  $(document).on('page:load turbolinks:load', function() { setTimeout(patchBelongsToSearch, 150); });
+});
+</script>
+
 <% if ChatwootHub.support_config[:support_website_token].present? && ChatwootHub.support_config[:support_script_url].present? %>
 <script>
 window.chatwootSettings = {
