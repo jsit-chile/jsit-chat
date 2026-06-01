@@ -70,6 +70,9 @@ class SuperAdmin::UsersController < SuperAdmin::ApplicationController
   def resource_params
     permitted_params = super
     permitted_params.delete(:password) if permitted_params[:password].blank?
+    # 'User' is a UI sentinel for a regular agent/administrator (selectize drops
+    # empty-value options); STI expects nil type for the base User class.
+    permitted_params[:type] = nil if permitted_params[:type] == 'User'
     permitted_params
   end
 
