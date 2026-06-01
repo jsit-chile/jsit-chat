@@ -8,7 +8,7 @@
   BUNDLE_WITHOUT = "development:test"
 
 [deploy]
-  startCommand = "mkdir -p tmp/pids && bundle exec puma -C config/puma.rb"
+  startCommand = "bundle exec puma -C config/puma.rb"
   healthcheckPath = "/health"
   healthcheckTimeout = 300
   restartPolicyType = "ON_FAILURE"
