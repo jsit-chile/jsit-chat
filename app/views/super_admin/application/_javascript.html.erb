@@ -20,13 +20,14 @@ by providing a `content_for(:javascript)` block.
   <% end %>
 <% end %>
 
+<% if ChatwootHub.support_config[:support_website_token].present? && ChatwootHub.support_config[:support_script_url].present? %>
 <script>
 window.chatwootSettings = {
   hideMessageBubble: true,
 };
 
 (function(d,t) {
-  var BASE_URL = '';
+  var BASE_URL = '<%= ChatwootHub.support_config[:support_script_url] %>';
   var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
   g.src= BASE_URL + "/packs/js/sdk.js";
   g.async = true;
@@ -34,7 +35,7 @@ window.chatwootSettings = {
   g.onload=function(){
     window.chatwootSDK.run({
       websiteToken: '<%= ChatwootHub.support_config[:support_website_token] %>',
-      baseUrl: '<%= ChatwootHub.support_config[:support_script_url] %>'
+      baseUrl: BASE_URL
     })
   }
 })(document,"script");
@@ -46,5 +47,5 @@ window.addEventListener('chatwoot:ready', function() {
     name: '<%= SuperAdmin.first.name %>'
   });
 })
-
 </script>
+<% end %>
