@@ -23,12 +23,19 @@
 }
 
 .search__clear-link {
+  display: none;
   height: $space-normal;
   position: absolute;
   right: $space-normal * 0.75;
   top: 50%;
   transform: translateY(-50%);
   width: $space-normal;
+}
+
+// Show clear button only when input has content (placeholder not visible).
+// Prevents the X icon from flashing on page load when the field is empty.
+.search__input:not(:placeholder-shown) ~ .search__clear-link {
+  display: block;
 }
 
 .search__clear-icon {
