@@ -30,6 +30,23 @@ Sidekiq.configure_server do |config|
     config[:skip_default_job_logging] = true
     config.logger.level = Logger.const_get(ENV.fetch('LOG_LEVEL', 'info').upcase.to_s)
   end
+
+  if Rails.env.development?
+    config.logger = Sidekiq::Logger.new($stdout).tap do |l|
+      l.extend(Module.new do
+        REDIS_NOISE = ['Error fetching job', 'ReadTimeoutError', 'Redis is online'].freeze
+
+        def add(severity, message = nil, progname = nil, &block)
+          msg = message || (block && yield) || progname
+          msg_str = msg.to_s
+          return if REDIS_NOISE.any? { |m| msg_str.include?(m) }
+          return if severity == Logger::WARN && msg_str.strip.empty?
+
+          super(severity, message, progname)
+        end
+      end)
+    end
+  end
 end
 
 # https://github.com/ondrejbartas/sidekiq-cron
