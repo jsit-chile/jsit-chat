@@ -8,6 +8,10 @@
   BUNDLE_WITHOUT = "development:test"
 
 [deploy]
+  # Boot Puma directly: it reads ENV['PORT'] in Ruby (config/puma.rb), avoiding
+  # the "$PORT" shell-expansion bug that breaks `rails server -p $PORT` on Railway
+  # (Railway runs startCommand without a shell). Touching this file also forces
+  # Railway to re-read the config-as-code snapshot.
   startCommand = "bundle exec puma -C config/puma.rb"
   healthcheckPath = "/health"
   healthcheckTimeout = 300
