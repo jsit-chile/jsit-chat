@@ -33,11 +33,22 @@ class DashboardController < ActionController::Base
   before_action :ensure_installation_onboarding, only: [:index]
   before_action :render_hc_if_custom_domain, only: [:index]
   before_action :ensure_html_format
+  before_action :allow_iframe_embedding
   layout 'vueapp'
 
   def index; end
 
   private
+
+  # Permite embeber el dashboard/login dentro de JSIT System (system.jsit.cl).
+  # Rails envía X-Frame-Options: SAMEORIGIN por defecto, que bloquea el iframe entre
+  # subdominios; lo removemos sólo aquí y restringimos el framing vía CSP
+  # frame-ancestors. No afecta al widget ni a los portales (otros controladores).
+  def allow_iframe_embedding
+    allowed = ENV.fetch('DASHBOARD_FRAME_ANCESTORS', 'https://system.jsit.cl')
+    response.headers.delete('X-Frame-Options')
+    response.headers['Content-Security-Policy'] = "frame-ancestors 'self' #{allowed}"
+  end
 
   def ensure_html_format
     render json: { error: 'Please use API routes instead of dashboard routes for JSON requests' }, status: :not_acceptable if request.format.json?
