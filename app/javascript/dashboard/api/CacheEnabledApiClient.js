@@ -15,10 +15,28 @@ class CacheEnabledApiClient extends ApiClient {
 
   get(cache = false) {
     if (cache) {
-      return this.getFromCache();
+      return this.getWithCacheFallback();
     }
 
     return this.getFromNetwork();
+  }
+
+  // A blocked/corrupt IndexedDB can leave getFromCache pending forever, which
+  // freezes any store that awaits it (e.g. inboxes stuck on isFetching). Race
+  // the cache path against a timeout and fall back to the network so a broken
+  // local cache degrades gracefully instead of hanging the whole UI.
+  getWithCacheFallback() {
+    const CACHE_TIMEOUT_MS = 3000;
+    const timeout = new Promise((_, reject) => {
+      setTimeout(
+        () => reject(new Error('IndexedDB cache timeout')),
+        CACHE_TIMEOUT_MS
+      );
+    });
+
+    return Promise.race([this.getFromCache(), timeout]).catch(() =>
+      this.getFromNetwork()
+    );
   }
 
   getFromNetwork() {
