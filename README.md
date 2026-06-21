@@ -1,3 +1,59 @@
+<!-- ============================================================ -->
+<!-- JSIT — Notas de operación / mantenimiento (fork self-hosted) -->
+<!-- ============================================================ -->
+
+# 🛠️ JSIT — Operación y mantenimiento
+
+> Notas propias del deploy de JSIT Chat (Railway + Neon + Redis Cloud). El resto de este README es la documentación original de Chatwoot.
+
+## Reactivar plan "enterprise" (features premium + branding JSIT)
+
+Con el plan en `community`, un job periódico (`Internal::ReconcilePlanConfigService`) **apaga las features premium y revierte el branding a Chatwoot**. Para evitarlo hay que dejar el plan en un valor distinto de `community` **y** habilitar las features. Si el sistema "se desconfigura" (vuelve a verse como Chatwoot o desaparecen features), correr esto de nuevo:
+
+```bash
+# Consola Rails en Railway
+railway run bundle exec rails console
+# o, ya dentro del servicio:
+bundle exec rails console
+```
+
+```ruby
+# 1. Cambiar el plan: detiene el job que resetea features premium Y el branding
+InstallationConfig.find_or_initialize_by(name: 'INSTALLATION_PRICING_PLAN').update!(value: 'enterprise')
+InstallationConfig.find_or_initialize_by(name: 'INSTALLATION_PRICING_PLAN_QUANTITY').update!(value: 100)
+
+# 2. Habilitar las features premium en cada cuenta
+premium = %w[disable_branding audit_logs sla custom_roles captain_integration csat_review_notes conversation_required_attributes]
+Account.find_each { |account| account.enable_features!(*premium) }
+```
+
+- `disable_branding` quita el "Powered by Chatwoot/JSIT".
+- Para una sola cuenta: `Account.find(2).enable_features!(*premium)`.
+- Referencias: `enterprise/app/services/internal/reconcile_plan_config_service.rb`, `enterprise/config/premium_features.yml`, `lib/chatwoot_hub.rb` (`pricing_plan`).
+
+## Almacenamiento (Cloudflare R2 / S3 compatible)
+
+- `ACTIVE_STORAGE_SERVICE=s3_compatible` + variables `STORAGE_*` (en **web y worker**).
+- Token R2: **Object Read & Write**, scoped al bucket.
+- R2 no acepta dos checksums → en `config/storage.yml` el servicio `s3_compatible` lleva `request_checksum_calculation: when_required` y `response_checksum_validation: when_required`. (Alternativa por env: `AWS_REQUEST_CHECKSUM_CALCULATION` / `AWS_RESPONSE_CHECKSUM_VALIDATION = when_required`.)
+
+## Import de contactos: duplicados por teléfono
+
+El import (`DataImportJob`) **solo importa contactos, no conversaciones**, y `phone_number` **no es único** → puede crear contactos duplicados que quedan sin las conversaciones existentes. Para fusionar un duplicado en el contacto correcto:
+
+```ruby
+acc    = Account.find(2)
+base   = acc.contacts.find(<id_a_conservar>)
+mergee = acc.contacts.find(<id_a_absorber>)   # se elimina tras el merge
+ContactMergeAction.new(account: acc, base_contact: base, mergee_contact: mergee).perform
+```
+
+<!-- ============================================================ -->
+<!-- Fin notas JSIT — abajo continúa el README original de Chatwoot -->
+<!-- ============================================================ -->
+
+___
+
 <img src="./.github/screenshots/header.png#gh-light-mode-only" width="100%" alt="Header light mode"/>
 <img src="./.github/screenshots/header-dark.png#gh-dark-mode-only" width="100%" alt="Header dark mode"/>
 
