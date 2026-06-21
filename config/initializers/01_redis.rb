@@ -8,7 +8,7 @@
 alfred_size = ENV.fetch('REDIS_ALFRED_SIZE', 5)
 $alfred = ConnectionPool.new(size: alfred_size, timeout: 1) do
   redis = Rails.env.test? ? MockRedis.new : Redis.new(Redis::Config.app)
-  Redis::Namespace.new('alfred', redis: redis, warning: true)
+  Redis::Namespace.new('alfred', redis: redis, warning: false)
 end
 
 # Velma : Determined protector
@@ -16,5 +16,5 @@ end
 velma_size = ENV.fetch('REDIS_VELMA_SIZE', 10)
 $velma = ConnectionPool.new(size: velma_size, timeout: 1) do
   config = Rails.env.test? ? MockRedis.new : Redis.new(Redis::Config.app)
-  Redis::Namespace.new('velma', redis: config, warning: true)
+  Redis::Namespace.new('velma', redis: config, warning: false)
 end
