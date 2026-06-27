@@ -95,7 +95,10 @@ const handleEnter = event => {
 };
 
 onMounted(() => {
-  if (props.autofocus) {
+  const isTouchDevice =
+    window.matchMedia('(pointer: coarse)').matches ||
+    navigator.maxTouchPoints > 0;
+  if (props.autofocus && !isTouchDevice) {
     nextTick(() => {
       inputRef.value?.focus();
     });

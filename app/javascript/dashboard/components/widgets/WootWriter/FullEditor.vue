@@ -115,7 +115,10 @@ export default {
     this.createEditorView();
 
     editorView.updateState(state);
-    if (this.autofocus) {
+    const isTouchDevice =
+      window.matchMedia('(pointer: coarse)').matches ||
+      navigator.maxTouchPoints > 0;
+    if (this.autofocus && !isTouchDevice) {
       this.focusEditorInputField();
     }
   },

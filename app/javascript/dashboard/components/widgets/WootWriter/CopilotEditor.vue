@@ -196,7 +196,10 @@ onMounted(() => {
   createEditorView();
   editorView.updateState(state);
 
-  if (props.autofocus) {
+  const isTouchDevice =
+    window.matchMedia('(pointer: coarse)').matches ||
+    navigator.maxTouchPoints > 0;
+  if (props.autofocus && !isTouchDevice) {
     focusEditorInputField();
   }
 });

@@ -132,7 +132,10 @@ onMounted(() => {
     nextTick(adjustHeight);
   }
 
-  if (props.autofocus) {
+  const isTouchDevice =
+    window.matchMedia('(pointer: coarse)').matches ||
+    navigator.maxTouchPoints > 0;
+  if (props.autofocus && !isTouchDevice) {
     textareaRef.value?.focus();
   }
 });

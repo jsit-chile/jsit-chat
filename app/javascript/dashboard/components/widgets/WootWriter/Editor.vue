@@ -392,8 +392,12 @@ function handleEmptyBodyWithSignature() {
   focusEditorInputField('start');
 }
 
+const isTouchDevice = () =>
+  window.matchMedia('(pointer: coarse)').matches ||
+  navigator.maxTouchPoints > 0;
+
 function focusEditor(content) {
-  if (props.disabled) return;
+  if (props.disabled || isTouchDevice()) return;
 
   const unrefContent = unref(content);
   if (isBodyEmpty(unrefContent) && sendWithSignature.value) {
@@ -851,7 +855,7 @@ onMounted(() => {
 
   createEditorView();
   editorView.updateState(state);
-  if (props.focusOnMount) {
+  if (props.focusOnMount && !isTouchDevice()) {
     focusEditorInputField();
   }
 });
