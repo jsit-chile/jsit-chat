@@ -6,6 +6,7 @@ class Messages::NewMessageNotificationService
 
     notify_conversation_assignee
     notify_participating_users
+    notify_inbox_members
   end
 
   private
@@ -36,6 +37,26 @@ class Messages::NewMessageNotificationService
       NotificationBuilder.new(
         notification_type: 'participating_conversation_new_message',
         user: participant,
+        account: account,
+        primary_actor: message.conversation,
+        secondary_actor: message
+      ).perform
+    end
+  end
+
+  # Notify every inbox member on each new message so supervisors following the
+  # inbox (e.g. AI-secretary workflows) get notified regardless of the assignee.
+  # Push/email delivery still respects each user's notification settings.
+  def notify_inbox_members
+    inbox_members = conversation.inbox.members.to_a
+    inbox_members -= [sender] if sender.is_a?(User)
+
+    inbox_members.uniq.each do |member|
+      next if already_notified?(member)
+
+      NotificationBuilder.new(
+        notification_type: 'participating_conversation_new_message',
+        user: member,
         account: account,
         primary_actor: message.conversation,
         secondary_actor: message
