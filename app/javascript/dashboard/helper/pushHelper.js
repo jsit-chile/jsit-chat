@@ -23,6 +23,12 @@ export const verifyServiceWorkerExistence = (callback = () => {}) => {
     });
 };
 
+export const clearAppBadge = () => {
+  if ('clearAppBadge' in navigator) {
+    navigator.clearAppBadge().catch(() => {});
+  }
+};
+
 export const hasPushPermissions = () => {
   if ('Notification' in window) {
     return Notification.permission === 'granted';

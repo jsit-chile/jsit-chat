@@ -34,8 +34,15 @@ class Notification::PushNotificationService
     {
       title: notification.push_message_title,
       tag: "#{notification.notification_type}_#{conversation.display_id}_#{notification.id}",
-      url: push_url
+      url: push_url,
+      count: unread_count
     }
+  end
+
+  # Total unread notifications for the user across all accounts, used as the
+  # PWA app icon badge count (navigator.setAppBadge in the service worker).
+  def unread_count
+    user.notifications.where(read_at: nil).count
   end
 
   def push_url

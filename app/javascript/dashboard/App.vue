@@ -17,6 +17,7 @@ import { useFontSize } from 'dashboard/composables/useFontSize';
 import {
   registerSubscription,
   verifyServiceWorkerExistence,
+  clearAppBadge,
 } from './helper/pushHelper';
 import ReconnectService from 'dashboard/helper/ReconnectService';
 import { useUISettings } from 'dashboard/composables/useUISettings';
@@ -84,11 +85,18 @@ export default {
     this.setLocale(
       this.uiSettings?.locale || window.chatwootConfig.selectedLocale
     );
+    // Clear the PWA app icon badge once the app is open/focused
+    clearAppBadge();
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
   },
   unmounted() {
     if (this.reconnectService) {
       this.reconnectService.disconnect();
     }
+    document.removeEventListener(
+      'visibilitychange',
+      this.handleVisibilityChange
+    );
   },
   methods: {
     initializeColorTheme() {
@@ -97,6 +105,11 @@ export default {
     listenToThemeChanges() {
       const mql = window.matchMedia('(prefers-color-scheme: dark)');
       mql.onchange = e => setColorTheme(e.matches);
+    },
+    handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        clearAppBadge();
+      }
     },
     setLocale(locale) {
       if (locale) {
