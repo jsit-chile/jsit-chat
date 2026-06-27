@@ -104,3 +104,7 @@ CLAUDE.local.md
 .pnpm-store/*
 local/
 Procfile.worktree
+
+# Design source files for app icons (not used at runtime)
+/public/logo jChat.png
+/public/logo jChat.psd

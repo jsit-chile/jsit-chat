@@ -123,11 +123,11 @@
         "CUSTOM_EMAIL_DOMAIN_ENABLED": "You can receive emails in your custom domain now."
       }
     },
-    "UPDATE_CHATWOOT": "An update {latestChatwootVersion} for JSIT Chat is available. Please update your instance.",
+    "UPDATE_CHATWOOT": "An update {latestChatwootVersion} for jChat is available. Please update your instance.",
     "LEARN_MORE": "Learn more",
-    "PAYMENT_PENDING": "Your payment is pending. Please update your payment information to continue using JSIT Chat",
-    "UPGRADE": "Upgrade to continue using JSIT Chat",
-    "LIMITS_UPGRADE": "Your account has exceeded the usage limits, please upgrade your plan to continue using JSIT Chat",
+    "PAYMENT_PENDING": "Your payment is pending. Please update your payment information to continue using jChat",
+    "UPGRADE": "Upgrade to continue using jChat",
+    "LIMITS_UPGRADE": "Your account has exceeded the usage limits, please upgrade your plan to continue using jChat",
     "OPEN_BILLING": "Open billing"
   },
   "FORMS": {

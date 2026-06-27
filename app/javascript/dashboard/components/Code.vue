@@ -22,7 +22,7 @@ const props = defineProps({
   },
   codepenTitle: {
     type: String,
-    default: 'JSIT Chat Codepen',
+    default: 'jChat Codepen',
   },
 });
 

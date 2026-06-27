@@ -243,7 +243,7 @@ const handleToggleWidget = () => {
           :script="widgetScript"
           lang="html"
           class="!text-start"
-          :codepen-title="`${websiteName} - JSIT Chat Widget Test`"
+          :codepen-title="`${websiteName} - jChat Widget Test`"
           enable-code-pen
         />
       </div>

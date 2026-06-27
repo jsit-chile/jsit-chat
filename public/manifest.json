@@ -1,6 +1,6 @@
 {
-  "name": "JSIT Chat",
-  "short_name": "JSIT Chat",
+  "name": "jChat",
+  "short_name": "jChat",
   "icons": [{
     "src": "\/android-icon-36x36.png",
     "sizes": "36x36",
