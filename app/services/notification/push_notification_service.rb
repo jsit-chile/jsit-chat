@@ -39,10 +39,12 @@ class Notification::PushNotificationService
     }
   end
 
-  # Total unread notifications for the user across all accounts, used as the
-  # PWA app icon badge count (navigator.setAppBadge in the service worker).
+  # Unread notifications for the user in this notification's account, used as the
+  # PWA app icon badge count (navigator.setAppBadge in the service worker). Scoped
+  # per-account to match the in-app unread count (notifications/getUnreadCount),
+  # so the badge stays consistent whether the app is open or closed.
   def unread_count
-    user.notifications.where(read_at: nil).count
+    user.notifications.where(account_id: notification.account_id, read_at: nil).count
   end
 
   def push_url
