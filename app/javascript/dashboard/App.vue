@@ -17,7 +17,7 @@ import { useFontSize } from 'dashboard/composables/useFontSize';
 import {
   registerSubscription,
   verifyServiceWorkerExistence,
-  clearAppBadge,
+  setAppBadge,
 } from './helper/pushHelper';
 import ReconnectService from 'dashboard/helper/ReconnectService';
 import { useUISettings } from 'dashboard/composables/useUISettings';
@@ -62,6 +62,7 @@ export default {
       isRTL: 'accounts/isRTL',
       currentUser: 'getCurrentUser',
       authUIFlags: 'getAuthUIFlags',
+      notificationUnreadCount: 'notifications/getUnreadCount',
     }),
     hideOnOnboardingView() {
       return !isOnOnboardingView(this.$route);
@@ -77,6 +78,14 @@ export default {
         }
       },
     },
+    // Keep the PWA app icon badge in sync with the real unread notification
+    // count, so it decrements as notifications are read in the app.
+    notificationUnreadCount: {
+      immediate: true,
+      handler(count) {
+        setAppBadge(count);
+      },
+    },
   },
   mounted() {
     this.initializeColorTheme();
@@ -85,18 +94,11 @@ export default {
     this.setLocale(
       this.uiSettings?.locale || window.chatwootConfig.selectedLocale
     );
-    // Clear the PWA app icon badge once the app is open/focused
-    clearAppBadge();
-    document.addEventListener('visibilitychange', this.handleVisibilityChange);
   },
   unmounted() {
     if (this.reconnectService) {
       this.reconnectService.disconnect();
     }
-    document.removeEventListener(
-      'visibilitychange',
-      this.handleVisibilityChange
-    );
   },
   methods: {
     initializeColorTheme() {
@@ -105,11 +107,6 @@ export default {
     listenToThemeChanges() {
       const mql = window.matchMedia('(prefers-color-scheme: dark)');
       mql.onchange = e => setColorTheme(e.matches);
-    },
-    handleVisibilityChange() {
-      if (document.visibilityState === 'visible') {
-        clearAppBadge();
-      }
     },
     setLocale(locale) {
       if (locale) {

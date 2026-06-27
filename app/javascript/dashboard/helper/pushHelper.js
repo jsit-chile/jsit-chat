@@ -23,8 +23,13 @@ export const verifyServiceWorkerExistence = (callback = () => {}) => {
     });
 };
 
-export const clearAppBadge = () => {
-  if ('clearAppBadge' in navigator) {
+export const setAppBadge = (count = 0) => {
+  if (!('setAppBadge' in navigator)) {
+    return;
+  }
+  if (count > 0) {
+    navigator.setAppBadge(count).catch(() => {});
+  } else {
     navigator.clearAppBadge().catch(() => {});
   }
 };
