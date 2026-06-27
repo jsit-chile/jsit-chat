@@ -86,6 +86,17 @@ const getters = {
       return isChatMine;
     });
   },
+  // Number of conversations assigned to the current user that still have unread
+  // incoming messages. Used to drive the PWA app icon badge so it tracks unread
+  // conversations (and clears as they are read) instead of unread notifications.
+  getMineUnreadConversationsCount: (_state, _, __, rootGetters) => {
+    const currentUserID = rootGetters.getCurrentUser?.id;
+
+    return _state.allConversations.filter(conversation => {
+      const assignee = conversation.meta?.assignee;
+      return assignee?.id === currentUserID && conversation.unread_count > 0;
+    }).length;
+  },
   getAppliedConversationFiltersV2: _state => {
     // TODO: Replace existing one with V2 after migrating the filters to use camelcase
     return _state.appliedFilters.map(camelcaseKeys);

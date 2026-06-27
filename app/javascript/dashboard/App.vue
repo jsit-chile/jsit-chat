@@ -62,7 +62,7 @@ export default {
       isRTL: 'accounts/isRTL',
       currentUser: 'getCurrentUser',
       authUIFlags: 'getAuthUIFlags',
-      notificationUnreadCount: 'notifications/getUnreadCount',
+      unreadConversationsCount: 'conversations/getMineUnreadConversationsCount',
     }),
     hideOnOnboardingView() {
       return !isOnOnboardingView(this.$route);
@@ -78,9 +78,10 @@ export default {
         }
       },
     },
-    // Keep the PWA app icon badge in sync with the real unread notification
-    // count, so it decrements as notifications are read in the app.
-    notificationUnreadCount: {
+    // Keep the PWA app icon badge in sync with the number of unread
+    // conversations assigned to the agent, so it clears as conversations are
+    // read instead of tracking unread notifications.
+    unreadConversationsCount: {
       immediate: true,
       handler(count) {
         setAppBadge(count);
