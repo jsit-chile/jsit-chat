@@ -377,7 +377,7 @@ function emitConversationLoaded() {
 function fetchFilteredConversations(payload) {
   payload = useSnakeCase(payload);
   let page = currentFiltersPage.value + 1;
-  store
+  const request = store
     .dispatch('fetchFilteredConversations', {
       queryData: filterQueryGenerator(payload),
       page,
@@ -385,12 +385,13 @@ function fetchFilteredConversations(payload) {
     .then(emitConversationLoaded);
 
   showAdvancedFilters.value = false;
+  return request;
 }
 
 function fetchSavedFilteredConversations(payload) {
   payload = useSnakeCase(payload);
   let page = currentFiltersPage.value + 1;
-  store
+  return store
     .dispatch('fetchFilteredConversations', {
       queryData: payload,
       page,
@@ -549,7 +550,21 @@ function onToggleAdvanceFiltersModal() {
 
 function fetchConversations() {
   store.dispatch('updateChatListFilters', conversationFilters.value);
-  store.dispatch('fetchAllConversations').then(emitConversationLoaded);
+  return store.dispatch('fetchAllConversations').then(emitConversationLoaded);
+}
+
+// Reloads the first page of the current view (keeping the active tab, filters
+// and folder) — used by the pull-to-refresh gesture on the PWA.
+function refreshConversations() {
+  store.dispatch('conversationPage/reset');
+  store.dispatch('emptyAllConversations');
+  if (hasActiveFolders.value) {
+    return fetchSavedFilteredConversations(activeFolder.value.query);
+  }
+  if (hasAppliedFilters.value) {
+    return fetchFilteredConversations(appliedFilters.value);
+  }
+  return fetchConversations();
 }
 
 function resetAndFetchData() {
@@ -941,6 +956,7 @@ watch(conversationFilters, (newVal, oldVal) => {
       :conversation-type="conversationType"
       :show-assignee="showAssigneeInConversationCard"
       :is-on-expanded-layout="isOnExpandedLayout"
+      :on-refresh="refreshConversations"
       @load-more="loadMoreConversations"
     />
     <Dialog
