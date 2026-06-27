@@ -554,10 +554,10 @@ function fetchConversations() {
 }
 
 // Reloads the first page of the current view (keeping the active tab, filters
-// and folder) — used by the pull-to-refresh gesture on the PWA.
+// and folder) — used by the pull-to-refresh gesture on the PWA. The list is
+// kept visible (not emptied) so it refreshes in place without a blank flash.
 function refreshConversations() {
   store.dispatch('conversationPage/reset');
-  store.dispatch('emptyAllConversations');
   if (hasActiveFolders.value) {
     return fetchSavedFilteredConversations(activeFolder.value.query);
   }

@@ -100,7 +100,7 @@ defineExpose({ conversationListRef });
           :show-expanded="showExpandedCards"
         />
       </Virtualizer>
-      <div v-if="isLoading" class="flex justify-center my-4">
+      <div v-if="isLoading && !isRefreshing" class="flex justify-center my-4">
         <Spinner class="text-n-brand" />
       </div>
       <p
