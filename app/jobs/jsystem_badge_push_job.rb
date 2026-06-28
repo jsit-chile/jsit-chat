@@ -18,16 +18,16 @@ class JsystemBadgePushJob < ApplicationJob
 
   private
 
-  # "Requires attention" = open conversations that are either unassigned or have
-  # unread incoming messages. Also returns the per-bucket breakdown.
+  # The badge mirrors the in-app unread badge: open conversations that have unread
+  # incoming messages (unread_count > 0). The breakdown carries the other buckets
+  # for diagnostics, but does not inflate the badge count.
   def compute_metrics(account)
     unread_ids = unread_conversations(account).ids
-    unassigned_ids = account.conversations.open.unassigned.ids
 
     {
-      count: (unread_ids | unassigned_ids).size,
+      count: unread_ids.size,
       breakdown: {
-        unassigned: unassigned_ids.size,
+        unassigned: account.conversations.open.unassigned.count,
         unread: unread_ids.size,
         open: account.conversations.open.count
       }
@@ -65,16 +65,16 @@ class JsystemBadgePushJob < ApplicationJob
       timeout: REQUEST_TIMEOUT
     )
 
-    log_response(response.code, metrics[:count])
+    log_response(response.code, metrics)
   rescue StandardError => e
     # jSystem being unreachable must never break Chatwoot; just log and move on.
     Rails.logger.error("[JsystemBadgePush] push failed: #{e.class}: #{e.message}")
   end
 
-  def log_response(code, count)
+  def log_response(code, metrics)
     case code
     when 200
-      Rails.logger.info("[JsystemBadgePush] badge pushed (count=#{count})")
+      Rails.logger.info("[JsystemBadgePush] badge pushed (count=#{metrics[:count]} breakdown=#{metrics[:breakdown]})")
     when 401
       Rails.logger.error('[JsystemBadgePush] unauthorized (401): check JSYSTEM_BADGE_SECRET')
     else
