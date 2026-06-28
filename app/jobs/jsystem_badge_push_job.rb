@@ -8,6 +8,9 @@ class JsystemBadgePushJob < ApplicationJob
   ACCOUNT_ID = 2
   DEFAULT_URL = 'https://api.system.jsit.cl/api/chat/badge'.freeze
   REQUEST_TIMEOUT = 5
+  # Only count conversations whose new incoming reply arrived within this window,
+  # so the badge tracks fresh activity instead of a stale backlog.
+  RECENT_WINDOW = 72.hours
 
   def perform(account_id = ACCOUNT_ID)
     account = Account.find_by(id: account_id)
@@ -18,9 +21,8 @@ class JsystemBadgePushJob < ApplicationJob
 
   private
 
-  # The badge mirrors the in-app unread badge: open conversations that have unread
-  # incoming messages (unread_count > 0). The breakdown carries the other buckets
-  # for diagnostics, but does not inflate the badge count.
+  # The badge counts open conversations with a fresh customer reply the agent hasn't
+  # read yet. The breakdown carries the other buckets for diagnostics only.
   def compute_metrics(account)
     unread_ids = unread_conversations(account).ids
 
@@ -34,9 +36,10 @@ class JsystemBadgePushJob < ApplicationJob
     }
   end
 
-  # Open conversations an agent has already opened (agent_last_seen_at present) that
-  # have at least one incoming message newer than that timestamp. Conversations no
-  # agent has ever opened are intentionally excluded from the badge.
+  # Open conversations the agent has genuinely seen (agent_last_seen_at is a real
+  # timestamp at or after creation, which rules out the epoch sentinel left on
+  # never-opened conversations) and that have an unread incoming message which
+  # arrived within RECENT_WINDOW.
   def unread_conversations(account)
     account.conversations
            .open
@@ -44,13 +47,15 @@ class JsystemBadgePushJob < ApplicationJob
            .merge(Message.incoming.reorder(nil))
            .where(messages: { account_id: account.id })
            .where(unread_since_last_seen_condition)
+           .where('messages.created_at > ?', RECENT_WINDOW.ago)
            .distinct
   end
 
   def unread_since_last_seen_condition
     conversations = Conversation.arel_table
     messages = Message.arel_table
-    conversations[:agent_last_seen_at].not_eq(nil).and(messages[:created_at].gt(conversations[:agent_last_seen_at]))
+    conversations[:agent_last_seen_at].gteq(conversations[:created_at])
+                                      .and(messages[:created_at].gt(conversations[:agent_last_seen_at]))
   end
 
   def push(account_id, metrics)
