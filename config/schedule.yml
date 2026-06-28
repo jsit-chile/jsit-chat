@@ -74,3 +74,10 @@ remove_orphan_conversations_job:
   cron: '0 */12 * * *'
   class: 'Internal::RemoveOrphanConversationsJob'
   queue: housekeeping
+
+# executed every minute as a robust backup for the jSystem badge push
+# (event listeners handle near real-time updates)
+jsystem_badge_push_job:
+  cron: '* * * * *'
+  class: 'JsystemBadgePushJob'
+  queue: low
