@@ -8,9 +8,6 @@ class JsystemBadgePushJob < ApplicationJob
   ACCOUNT_ID = 2
   DEFAULT_URL = 'https://api.system.jsit.cl/api/chat/badge'.freeze
   REQUEST_TIMEOUT = 5
-  # Only count conversations whose new incoming reply arrived within this window,
-  # so the badge tracks fresh activity instead of a stale backlog.
-  RECENT_WINDOW = 72.hours
 
   def perform(account_id = ACCOUNT_ID)
     account = Account.find_by(id: account_id)
@@ -38,8 +35,8 @@ class JsystemBadgePushJob < ApplicationJob
 
   # Open conversations the agent has genuinely seen (agent_last_seen_at is a real
   # timestamp at or after creation, which rules out the epoch sentinel left on
-  # never-opened conversations) and that have an unread incoming message which
-  # arrived within RECENT_WINDOW.
+  # never-opened conversations) and that have an unread incoming message newer than
+  # that timestamp.
   def unread_conversations(account)
     account.conversations
            .open
@@ -47,7 +44,6 @@ class JsystemBadgePushJob < ApplicationJob
            .merge(Message.incoming.reorder(nil))
            .where(messages: { account_id: account.id })
            .where(unread_since_last_seen_condition)
-           .where('messages.created_at > ?', RECENT_WINDOW.ago)
            .distinct
   end
 
