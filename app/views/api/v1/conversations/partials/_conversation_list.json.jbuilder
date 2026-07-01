@@ -32,13 +32,14 @@ json.meta do
 end
 
 json.messages do
-  if conversation.latest_message_id.present?
-    json.id conversation.latest_message_id
-    json.content conversation.latest_message_content
-    json.message_type conversation.latest_message_type
-    json.created_at conversation.latest_message_created_at.to_i if conversation.latest_message_created_at
-    json.sender_type conversation.latest_message_sender_type
-    json.sender_id conversation.latest_message_sender_id
+  last_msg = conversation.messages.max_by(&:created_at)
+  if last_msg.present?
+    json.id last_msg.id
+    json.content last_msg.content
+    json.message_type last_msg.message_type
+    json.created_at last_msg.created_at.to_i
+    json.sender_type last_msg.sender_type
+    json.sender_id last_msg.sender_id
   end
 end
 
@@ -46,7 +47,6 @@ json.timestamp conversation.last_activity_at.to_i
 json.last_activity_at conversation.last_activity_at.to_i
 json.created_at conversation.created_at.to_i
 json.can_reply conversation.can_reply?
-json.unread_count conversation.preloaded_unread_count.to_i
 json.snoozed_until conversation.snoozed_until
 json.priority conversation.priority
 json.muted conversation.muted?
