@@ -201,7 +201,7 @@ class ConversationFinder
       :inbox,
       :team,
       :contact_inbox,
-      :agent_bot,
+      :assignee_agent_bot,
       { assignee: { avatar_attachment: [:blob] } },
       { contact: { avatar_attachment: [:blob] } }
     ).with_latest_message

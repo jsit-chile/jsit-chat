@@ -98,20 +98,14 @@ class Conversation < ApplicationRecord
   }
 
   scope :with_latest_message, lambda {
-    joins(
-      "LEFT OUTER JOIN (
-        SELECT DISTINCT ON (conversation_id) id, conversation_id, content, message_type, created_at, sender_type, sender_id
-        FROM messages
-        ORDER BY conversation_id, created_at DESC
-      ) latest_messages ON latest_messages.conversation_id = conversations.id"
-    ).select(
+    select(
       "conversations.*,
-       latest_messages.id as latest_message_id,
-       latest_messages.content as latest_message_content,
-       latest_messages.message_type as latest_message_type,
-       latest_messages.created_at as latest_message_created_at,
-       latest_messages.sender_type as latest_message_sender_type,
-       latest_messages.sender_id as latest_message_sender_id,
+       (SELECT id FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as latest_message_id,
+       (SELECT content FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as latest_message_content,
+       (SELECT message_type FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as latest_message_type,
+       (SELECT created_at FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as latest_message_created_at,
+       (SELECT sender_type FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as latest_message_sender_type,
+       (SELECT sender_id FROM messages WHERE conversation_id = conversations.id ORDER BY created_at DESC LIMIT 1) as latest_message_sender_id,
        (SELECT COUNT(*) FROM messages WHERE conversation_id = conversations.id AND private = false AND message_type = 0) as preloaded_unread_count"
     )
   }
