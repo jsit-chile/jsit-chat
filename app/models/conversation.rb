@@ -97,6 +97,25 @@ class Conversation < ApplicationRecord
     ).sort_on_last_user_message_at
   }
 
+  scope :with_latest_message, lambda {
+    joins(
+      "LEFT OUTER JOIN (
+        SELECT DISTINCT ON (conversation_id) id, conversation_id, content, message_type, created_at, sender_type, sender_id
+        FROM messages
+        ORDER BY conversation_id, created_at DESC
+      ) latest_messages ON latest_messages.conversation_id = conversations.id"
+    ).select(
+      "conversations.*,
+       latest_messages.id as latest_message_id,
+       latest_messages.content as latest_message_content,
+       latest_messages.message_type as latest_message_type,
+       latest_messages.created_at as latest_message_created_at,
+       latest_messages.sender_type as latest_message_sender_type,
+       latest_messages.sender_id as latest_message_sender_id,
+       (SELECT COUNT(*) FROM messages WHERE conversation_id = conversations.id AND private = false AND message_type = 0) as preloaded_unread_count"
+    )
+  }
+
   belongs_to :account
   belongs_to :inbox
   belongs_to :assignee, class_name: 'User', optional: true, inverse_of: :assigned_conversations

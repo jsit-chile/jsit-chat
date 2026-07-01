@@ -1,0 +1,52 @@
+json.id conversation.display_id
+json.uuid conversation.uuid
+json.account_id conversation.account_id
+json.inbox_id conversation.inbox_id
+json.status conversation.status
+
+json.meta do
+  json.sender do
+    json.id conversation.contact.id
+    json.name conversation.contact.name
+    json.email conversation.contact.email
+    json.phone_number conversation.contact.phone_number
+    json.thumbnail conversation.contact.avatar_url
+  end
+  json.channel conversation.inbox.try(:channel_type)
+
+  if conversation.assigned_entity.is_a?(AgentBot)
+    json.assignee do
+      json.id conversation.assigned_entity.id
+      json.name conversation.assigned_entity.name
+      json.avatar_url conversation.assigned_entity.avatar_url
+    end
+    json.assignee_type 'AgentBot'
+  elsif conversation.assigned_entity&.account
+    json.assignee do
+      json.id conversation.assigned_entity.id
+      json.name conversation.assigned_entity.name
+      json.avatar_url conversation.assigned_entity.avatar_url
+    end
+    json.assignee_type 'User'
+  end
+end
+
+json.messages do
+  if conversation.latest_message_id.present?
+    json.id conversation.latest_message_id
+    json.content conversation.latest_message_content
+    json.message_type conversation.latest_message_type
+    json.created_at conversation.latest_message_created_at.to_i if conversation.latest_message_created_at
+    json.sender_type conversation.latest_message_sender_type
+    json.sender_id conversation.latest_message_sender_id
+  end
+end
+
+json.timestamp conversation.last_activity_at.to_i
+json.last_activity_at conversation.last_activity_at.to_i
+json.created_at conversation.created_at.to_i
+json.can_reply conversation.can_reply?
+json.unread_count conversation.preloaded_unread_count.to_i
+json.snoozed_until conversation.snoozed_until
+json.priority conversation.priority
+json.muted conversation.muted?
