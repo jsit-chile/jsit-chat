@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import LoadingState from './components/widgets/LoadingState.vue';
 import NetworkNotification from './components/NetworkNotification.vue';
 import UpdateBanner from './components/app/UpdateBanner.vue';
@@ -9,6 +8,7 @@ import PendingEmailVerificationBanner from './components/app/PendingEmailVerific
 import vueActionCable from './helper/actionCable';
 import { useRouter } from 'vue-router';
 import { useStore } from 'dashboard/composables/store';
+import { useMapGetter } from 'dashboard/composables/store';
 import WootSnackbarBox from './components/SnackbarContainer.vue';
 import { setColorTheme } from './helper/themeHelper';
 import { isOnOnboardingView } from 'v3/helpers/RouteHelper';
@@ -21,6 +21,7 @@ import {
 } from './helper/pushHelper';
 import ReconnectService from 'dashboard/helper/ReconnectService';
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import { watch } from 'vue';
 
 export default {
   name: 'App',
@@ -42,12 +43,31 @@ export default {
     const { currentFontSize } = useFontSize();
     const { uiSettings } = useUISettings();
 
+    // Use composition API getters to avoid conflicts
+    const getAccount = useMapGetter('accounts/getAccount');
+    const isRTL = useMapGetter('accounts/isRTL');
+    const currentUser = useMapGetter('getCurrentUser');
+    const authUIFlags = useMapGetter('getAuthUIFlags');
+    const unreadConversationsCount = useMapGetter(
+      'conversations/getMineUnreadConversationsCount'
+    );
+
+    // Watch unread count for PWA badge
+    watch(unreadConversationsCount, count => {
+      setAppBadge(count);
+    });
+
     return {
       router,
       store,
       currentAccountId: accountId,
       currentFontSize,
       uiSettings,
+      getAccount,
+      isRTL,
+      currentUser,
+      authUIFlags,
+      unreadConversationsCount,
     };
   },
   data() {
@@ -57,13 +77,6 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({
-      getAccount: 'accounts/getAccount',
-      isRTL: 'accounts/isRTL',
-      currentUser: 'getCurrentUser',
-      authUIFlags: 'getAuthUIFlags',
-      unreadConversationsCount: 'conversations/getMineUnreadConversationsCount',
-    }),
     hideOnOnboardingView() {
       return !isOnOnboardingView(this.$route);
     },
@@ -76,15 +89,6 @@ export default {
         if (this.currentAccountId) {
           this.initializeAccount();
         }
-      },
-    },
-    // Keep the PWA app icon badge in sync with the number of unread
-    // conversations assigned to the agent, so it clears as conversations are
-    // read instead of tracking unread notifications.
-    unreadConversationsCount: {
-      immediate: true,
-      handler(count) {
-        setAppBadge(count);
       },
     },
   },
