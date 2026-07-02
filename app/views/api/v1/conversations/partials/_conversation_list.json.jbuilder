@@ -34,14 +34,7 @@ end
 json.messages do
   last_msg = conversation.messages.max_by(&:created_at)
   if last_msg.present?
-    json.array! [last_msg] do |msg|
-      json.id msg.id
-      json.content msg.content
-      json.message_type msg.message_type
-      json.created_at msg.created_at.to_i
-      json.sender_type msg.sender_type
-      json.sender_id msg.sender_id
-    end
+    json.array! [last_msg.push_event_data]
   else
     json.array! []
   end
