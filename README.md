@@ -4,11 +4,11 @@
 
 # 🛠️ JSIT — Operación y mantenimiento
 
-> Notas propias del deploy de JSIT Chat (Railway + Neon + Redis Cloud). El resto de este README es la documentación original de Chatwoot.
+> Notas propias del deploy de JSIT Chat (Railway + Neon + Redis Cloud). El resto de este README es la documentación original de jChat.
 
 ## Reactivar plan "enterprise" (features premium + branding JSIT)
 
-Con el plan en `community`, un job periódico (`Internal::ReconcilePlanConfigService`) **apaga las features premium y revierte el branding a Chatwoot**. Para evitarlo hay que dejar el plan en un valor distinto de `community` **y** habilitar las features. Si el sistema "se desconfigura" (vuelve a verse como Chatwoot o desaparecen features), correr esto de nuevo:
+Con el plan en `community`, un job periódico (`Internal::ReconcilePlanConfigService`) **apaga las features premium y revierte el branding a jChat**. Para evitarlo hay que dejar el plan en un valor distinto de `community` **y** habilitar las features. Si el sistema "se desconfigura" (vuelve a verse como jChat o desaparecen features), correr esto de nuevo:
 
 ```bash
 # Consola Rails en Railway
@@ -27,9 +27,9 @@ premium = %w[disable_branding audit_logs sla custom_roles captain_integration cs
 Account.find_each { |account| account.enable_features!(*premium) }
 ```
 
-- `disable_branding` quita el "Powered by Chatwoot/JSIT".
+- `disable_branding` quita el "Powered by jChat/JSIT".
 - Para una sola cuenta: `Account.find(2).enable_features!(*premium)`.
-- Referencias: `enterprise/app/services/internal/reconcile_plan_config_service.rb`, `enterprise/config/premium_features.yml`, `lib/chatwoot_hub.rb` (`pricing_plan`).
+- Referencias: `enterprise/app/services/internal/reconcile_plan_config_service.rb`, `enterprise/config/premium_features.yml`, `lib/jChat_hub.rb` (`pricing_plan`).
 
 ## Almacenamiento (Cloudflare R2 / S3 compatible)
 
@@ -49,7 +49,7 @@ ContactMergeAction.new(account: acc, base_contact: base, mergee_contact: mergee)
 ```
 
 <!-- ============================================================ -->
-<!-- Fin notas JSIT — abajo continúa el README original de Chatwoot -->
+<!-- Fin notas JSIT — abajo continúa el README original de jChat -->
 <!-- ============================================================ -->
 
 ___
@@ -59,28 +59,28 @@ ___
 
 ___
 
-# Chatwoot
+# jChat
 
 The modern customer support platform, an open-source alternative to Intercom, Zendesk, Salesforce Service Cloud etc.
 
 <p>
-  <img src="https://img.shields.io/circleci/build/github/chatwoot/chatwoot" alt="CircleCI Badge">
-    <a href="https://hub.docker.com/r/chatwoot/chatwoot/"><img src="https://img.shields.io/docker/pulls/chatwoot/chatwoot" alt="Docker Pull Badge"></a>
-  <a href="https://hub.docker.com/r/chatwoot/chatwoot/"><img src="https://img.shields.io/docker/cloud/build/chatwoot/chatwoot" alt="Docker Build Badge"></a>
-  <img src="https://img.shields.io/github/commit-activity/m/chatwoot/chatwoot" alt="Commits-per-month">
-  <a title="Crowdin" target="_self" href="https://chatwoot.crowdin.com/chatwoot"><img src="https://badges.crowdin.net/e/37ced7eba411064bd792feb3b7a28b16/localized.svg"></a>
+  <img src="https://img.shields.io/circleci/build/github/jChat/jChat" alt="CircleCI Badge">
+    <a href="https://hub.docker.com/r/jChat/jChat/"><img src="https://img.shields.io/docker/pulls/jChat/jChat" alt="Docker Pull Badge"></a>
+  <a href="https://hub.docker.com/r/jChat/jChat/"><img src="https://img.shields.io/docker/cloud/build/jChat/jChat" alt="Docker Build Badge"></a>
+  <img src="https://img.shields.io/github/commit-activity/m/jChat/jChat" alt="Commits-per-month">
+  <a title="Crowdin" target="_self" href="https://jChat.crowdin.com/jChat"><img src="https://badges.crowdin.net/e/37ced7eba411064bd792feb3b7a28b16/localized.svg"></a>
   <a href="https://discord.gg/cJXdrwS"><img src="https://img.shields.io/discord/647412545203994635" alt="Discord"></a>
-  <a href="https://status.chatwoot.com"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fchatwoot%2Fstatus%2Fmaster%2Fapi%2Fchatwoot%2Fuptime.json" alt="uptime"></a>
-  <a href="https://status.chatwoot.com"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fchatwoot%2Fstatus%2Fmaster%2Fapi%2Fchatwoot%2Fresponse-time.json" alt="response time"></a>
-  <a href="https://artifacthub.io/packages/helm/chatwoot/chatwoot"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/artifact-hub" alt="Artifact HUB"></a>
+  <a href="https://status.jChat.com"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FjChat%2Fstatus%2Fmaster%2Fapi%2FjChat%2Fuptime.json" alt="uptime"></a>
+  <a href="https://status.jChat.com"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FjChat%2Fstatus%2Fmaster%2Fapi%2FjChat%2Fresponse-time.json" alt="response time"></a>
+  <a href="https://artifacthub.io/packages/helm/jChat/jChat"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/artifact-hub" alt="Artifact HUB"></a>
 </p>
 
 
 <p>
-  <a href="https://heroku.com/deploy?template=https://github.com/chatwoot/chatwoot/tree/master" alt="Deploy to Heroku">
+  <a href="https://heroku.com/deploy?template=https://github.com/jChat/jChat/tree/master" alt="Deploy to Heroku">
      <img width="150" alt="Deploy" src="https://www.herokucdn.com/deploy/button.svg"/>
   </a>
-  <a href="https://marketplace.digitalocean.com/apps/chatwoot?refcode=f2238426a2a8" alt="Deploy to DigitalOcean">
+  <a href="https://marketplace.digitalocean.com/apps/jChat?refcode=f2238426a2a8" alt="Deploy to DigitalOcean">
      <img width="200" alt="Deploy to DO" src="https://www.deploytodo.com/do-btn-blue.svg"/>
   </a>
 </p>
@@ -90,15 +90,15 @@ The modern customer support platform, an open-source alternative to Intercom, Ze
 
 ---
 
-Chatwoot is the modern, open-source, and self-hosted customer support platform designed to help businesses deliver exceptional customer support experience. Built for scale and flexibility, Chatwoot gives you full control over your customer data while providing powerful tools to manage conversations across channels.
+jChat is the modern, open-source, and self-hosted customer support platform designed to help businesses deliver exceptional customer support experience. Built for scale and flexibility, jChat gives you full control over your customer data while providing powerful tools to manage conversations across channels.
 
 ### ✨ Captain – AI Agent for Support
 
-Supercharge your support with Captain, Chatwoot’s AI agent. Captain helps automate responses, handle common queries, and reduce agent workload—ensuring customers get instant, accurate answers. With Captain, your team can focus on complex conversations while routine questions are resolved automatically. Read more about Captain [here](https://chwt.app/captain-docs).
+Supercharge your support with Captain, jChat’s AI agent. Captain helps automate responses, handle common queries, and reduce agent workload—ensuring customers get instant, accurate answers. With Captain, your team can focus on complex conversations while routine questions are resolved automatically. Read more about Captain [here](https://chwt.app/captain-docs).
 
 ### 💬 Omnichannel Support Desk
 
-Chatwoot centralizes all customer conversations into one powerful inbox, no matter where your customers reach out from. It supports live chat on your website, email, Facebook, Instagram, Twitter, WhatsApp, Telegram, Line, SMS etc.
+jChat centralizes all customer conversations into one powerful inbox, no matter where your customers reach out from. It supports live chat on your website, email, Facebook, Instagram, Twitter, WhatsApp, Telegram, Line, SMS etc.
 
 ### 📚 Help center portal
 
@@ -129,10 +129,10 @@ Publish help articles, FAQs, and guides through the built-in Help Center Portal.
 #### Integrations
 - Slack Integration to manage conversations directly from Slack.
 - Dialogflow Integration for chatbot automation.
-- Dashboard Apps to embed internal tools within Chatwoot.
-- Shopify Integration to view and manage customer orders right within Chatwoot.
+- Dashboard Apps to embed internal tools within jChat.
+- Shopify Integration to view and manage customer orders right within jChat.
 - Use Google Translate to translate messages from your customers in realtime.
-- Create and manage Linear tickets within Chatwoot.
+- Create and manage Linear tickets within jChat.
 
 #### Reports & Insights
 - Live View of ongoing conversations for real-time monitoring.
@@ -140,56 +140,6 @@ Publish help articles, FAQs, and guides through the built-in Help Center Portal.
 - CSAT Reports to measure customer satisfaction.
 - Downloadable Reports for offline analysis and reporting.
 
-
-## Documentation
-
-Detailed documentation is available at [chatwoot.com/help-center](https://www.chatwoot.com/help-center).
-
-## Translation process
-
-The translation process for Chatwoot web and mobile app is managed at [https://translate.chatwoot.com](https://translate.chatwoot.com) using Crowdin. Please read the [translation guide](https://www.chatwoot.com/docs/contributing/translating-chatwoot-to-your-language) for contributing to Chatwoot.
-
-## Branching model
-
-We use the [git-flow](https://nvie.com/posts/a-successful-git-branching-model/) branching model. The base branch is `develop`.
-If you are looking for a stable version, please use the `master` or tags labelled as `v1.x.x`.
-
-## Deployment
-
-### Heroku one-click deploy
-
-Deploying Chatwoot to Heroku is a breeze. It's as simple as clicking this button:
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/chatwoot/chatwoot/tree/master)
-
-Follow this [link](https://www.chatwoot.com/docs/environment-variables) to understand setting the correct environment variables for the app to work with all the features. There might be breakages if you do not set the relevant environment variables.
-
-
-### DigitalOcean 1-Click Kubernetes deployment
-
-Chatwoot now supports 1-Click deployment to DigitalOcean as a kubernetes app.
-
-<a href="https://marketplace.digitalocean.com/apps/chatwoot?refcode=f2238426a2a8" alt="Deploy to DigitalOcean">
-  <img width="200" alt="Deploy to DO" src="https://www.deploytodo.com/do-btn-blue.svg"/>
-</a>
-
-### Other deployment options
-
-For other supported options, checkout our [deployment page](https://chatwoot.com/deploy).
-
 ## Security
 
 Looking to report a vulnerability? Please refer our [SECURITY.md](./SECURITY.md) file.
-
-## Community
-
-If you need help or just want to hang out, come, say hi on our [Discord](https://discord.gg/cJXdrwS) server.
-
-## Contributors
-
-Thanks goes to all these [wonderful people](https://www.chatwoot.com/docs/contributors):
-
-<a href="https://github.com/chatwoot/chatwoot/graphs/contributors"><img src="https://opencollective.com/chatwoot/contributors.svg?width=890&button=false" /></a>
-
-
-*Chatwoot* &copy; 2017-2026, Chatwoot Inc - Released under the MIT License.
