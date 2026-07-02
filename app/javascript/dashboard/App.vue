@@ -95,6 +95,13 @@ export default {
     this.setLocale(
       this.uiSettings?.locale || window.chatwootConfig.selectedLocale
     );
+    // Remove loading splash screen
+    const loadingEl = document.getElementById('app-loading');
+    if (loadingEl) {
+      loadingEl.style.opacity = '0';
+      loadingEl.style.transition = 'opacity 0.3s ease-out';
+      setTimeout(() => loadingEl.remove(), 300);
+    }
   },
   unmounted() {
     if (this.reconnectService) {
