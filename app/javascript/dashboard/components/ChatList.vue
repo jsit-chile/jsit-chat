@@ -922,13 +922,25 @@ watch(conversationFilters, (newVal, oldVal) => {
       @close="onCloseDeleteFoldersModal"
     />
 
-    <ChatTypeTabs
+    <div
       v-if="!hasAppliedFiltersOrActiveFolders"
-      :items="assigneeTabItems"
-      :active-tab="activeAssigneeTab"
-      is-compact
-      @chat-tab-change="updateAssigneeTab"
-    />
+      class="flex items-center justify-between"
+    >
+      <ChatTypeTabs
+        :items="assigneeTabItems"
+        :active-tab="activeAssigneeTab"
+        is-compact
+        class="flex-1"
+        @chat-tab-change="updateAssigneeTab"
+      />
+      <button
+        class="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        :title="$t('CHAT_LIST.REFRESH_CONVERSATIONS')"
+        @click="refreshConversations"
+      >
+        <i class="icon-refresh-cw text-lg" />
+      </button>
+    </div>
 
     <p
       v-if="!chatListLoading && !conversationList.length"

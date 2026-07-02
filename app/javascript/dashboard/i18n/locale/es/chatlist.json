@@ -14,6 +14,7 @@
       "INPUT": "Búsqueda de Personas, Chats, Respuestas Salvadas .."
     },
     "FILTER_ALL": "Todos",
+    "REFRESH_CONVERSATIONS": "Actualizar conversaciones",
     "ASSIGNEE_TYPE_TABS": {
       "me": "Mías",
       "unassigned": "Sin asignar",
