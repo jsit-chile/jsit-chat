@@ -20,6 +20,7 @@ import {
   setAppBadge,
 } from './helper/pushHelper';
 import ConversationApi from 'dashboard/api/inbox/conversation';
+import { removeAppSplash } from 'shared/helpers/removeAppSplash';
 import ReconnectService from 'dashboard/helper/ReconnectService';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { watch } from 'vue';
@@ -113,17 +114,7 @@ export default {
     this.setLocale(
       this.uiSettings?.locale || window.jChatConfig.selectedLocale
     );
-    // Remove loading splash screen, keeping it visible at least 2.5s from
-    // navigation start while the dashboard finishes loading behind it
-    const loadingEl = document.getElementById('app-loading');
-    if (loadingEl) {
-      const remaining = Math.max(0, 2500 - performance.now());
-      setTimeout(() => {
-        loadingEl.style.opacity = '0';
-        loadingEl.style.transition = 'opacity 0.3s ease-out';
-        setTimeout(() => loadingEl.remove(), 300);
-      }, remaining);
-    }
+    removeAppSplash();
   },
   unmounted() {
     document.removeEventListener('visibilitychange', this.onVisibilityChange);

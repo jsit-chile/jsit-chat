@@ -1,4 +1,5 @@
 <script>
+import { removeAppSplash } from 'shared/helpers/removeAppSplash';
 import SnackbarContainer from './components/SnackBar/Container.vue';
 
 export default {
@@ -10,6 +11,7 @@ export default {
     this.setColorTheme();
     this.listenToThemeChanges();
     this.setLocale(window.jChatConfig.selectedLocale);
+    removeAppSplash();
   },
   methods: {
     setColorTheme() {
