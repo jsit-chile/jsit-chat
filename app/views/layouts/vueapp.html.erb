@@ -109,8 +109,6 @@
       }
       @keyframes app-loading-spin { to { transform: rotate(360deg); } }
     </style>
-    <%= vite_client_tag %>
-    <%= vite_javascript_tag @application_pack %>
   </head>
   <body class="text-slate-600">
     <div id="app-loading">
@@ -121,6 +119,10 @@
     <div id="app"></div>
     <noscript id="noscript">This app works best with JavaScript enabled.</noscript>
     <%= yield %>
+    <%# Vite tags are loaded at the end of <body> (not <head>) so the render-blocking
+        app stylesheets don't delay the first paint of the branded #app-loading splash. %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag @application_pack %>
     <% if @dashboard_scripts.present? %>
       <%= @dashboard_scripts.html_safe %>
     <% end %>

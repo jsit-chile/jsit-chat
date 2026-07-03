@@ -18,9 +18,10 @@ class GlobalConfig
 
     def clear_cache
       cached_keys = $alfred.with { |conn| conn.keys("#{VERSION}:#{KEY_PREFIX}:*") }
-      (cached_keys || []).each do |cached_key|
-        $alfred.with { |conn| conn.expire(cached_key, 0) }
-      end
+      return if cached_keys.blank?
+
+      # Single batched DEL instead of one EXPIRE round-trip per key
+      $alfred.with { |conn| conn.del(*cached_keys) }
     end
 
     private
