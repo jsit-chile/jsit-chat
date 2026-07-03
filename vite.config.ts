@@ -67,7 +67,41 @@ export default defineConfig({
                 return '[name].js';
               },
             }
-          : {}),
+          : {
+              // Split heavy, independent vendor libraries into their own chunks so
+              // they download in parallel and stay cached across deploys instead of
+              // shipping one monolithic bundle on every cold load.
+              manualChunks(id) {
+                if (!id.includes('node_modules')) return undefined;
+                if (id.includes('/@sentry')) return 'vendor-sentry';
+                if (
+                  id.includes('/chart.js/') ||
+                  id.includes('/video.js/') ||
+                  id.includes('/@videojs/') ||
+                  id.includes('/highlight.js/')
+                ) {
+                  return 'vendor-media';
+                }
+                if (
+                  id.includes('/prosemirror') ||
+                  id.includes('/@tiptap/') ||
+                  id.includes('/tributejs/') ||
+                  id.includes('/marked/') ||
+                  id.includes('/markdown')
+                ) {
+                  return 'vendor-editor';
+                }
+                if (
+                  id.includes('/vue/') ||
+                  id.includes('/@vue/') ||
+                  id.includes('/vue-router/') ||
+                  id.includes('/vuex/')
+                ) {
+                  return 'vendor-vue';
+                }
+                return 'vendor';
+              },
+            }),
         inlineDynamicImports: isLibraryMode, // Disable code-splitting for SDK
       },
     },
