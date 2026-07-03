@@ -55,7 +55,20 @@ class DashboardController < ActionController::Base
   end
 
   def set_global_config
-    @global_config = GlobalConfig.get(*GLOBAL_CONFIG_KEYS).merge(app_config)
+    t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    base = GlobalConfig.get(*GLOBAL_CONFIG_KEYS)
+    t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    cfg = app_config
+    t2 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    @global_config = base.merge(cfg)
+    Rails.logger.warn("[PERFDIAG] global_config.get=#{((t1 - t0) * 1000).round}ms app_config=#{((t2 - t1) * 1000).round}ms")
+  end
+
+  def perfdiag(label)
+    t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    result = yield
+    Rails.logger.warn("[PERFDIAG]   #{label}=#{((Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0) * 1000).round}ms")
+    result
   end
 
   def set_dashboard_scripts
@@ -79,20 +92,20 @@ class DashboardController < ActionController::Base
 
   def app_config
     {
-      APP_VERSION: Chatwoot.config[:version],
-      VAPID_PUBLIC_KEY: VapidService.public_key,
-      ENABLE_ACCOUNT_SIGNUP: GlobalConfigService.load('ENABLE_ACCOUNT_SIGNUP', 'false'),
-      FB_APP_ID: GlobalConfigService.load('FB_APP_ID', ''),
+      APP_VERSION: perfdiag('version') { Chatwoot.config[:version] },
+      VAPID_PUBLIC_KEY: perfdiag('vapid') { VapidService.public_key },
+      ENABLE_ACCOUNT_SIGNUP: perfdiag('gcs_signup') { GlobalConfigService.load('ENABLE_ACCOUNT_SIGNUP', 'false') },
+      FB_APP_ID: perfdiag('gcs_fb') { GlobalConfigService.load('FB_APP_ID', '') },
       INSTAGRAM_APP_ID: GlobalConfigService.load('INSTAGRAM_APP_ID', ''),
       TIKTOK_APP_ID: GlobalConfigService.load('TIKTOK_APP_ID', ''),
-      FACEBOOK_API_VERSION: GlobalConfigService.load('FACEBOOK_API_VERSION', 'v18.0'),
+      FACEBOOK_API_VERSION: perfdiag('gcs_fbver') { GlobalConfigService.load('FACEBOOK_API_VERSION', 'v18.0') },
       WHATSAPP_APP_ID: GlobalConfigService.load('WHATSAPP_APP_ID', ''),
       WHATSAPP_CONFIGURATION_ID: GlobalConfigService.load('WHATSAPP_CONFIGURATION_ID', ''),
-      IS_ENTERPRISE: ChatwootApp.enterprise?,
+      IS_ENTERPRISE: perfdiag('enterprise') { ChatwootApp.enterprise? },
       AZURE_APP_ID: GlobalConfigService.load('AZURE_APP_ID', ''),
-      GIT_SHA: GIT_HASH,
-      ALLOWED_LOGIN_METHODS: allowed_login_methods,
-      ACTIVE_PLATFORM_BANNERS: active_platform_banners
+      GIT_SHA: perfdiag('git_sha') { GIT_HASH },
+      ALLOWED_LOGIN_METHODS: perfdiag('login_methods') { allowed_login_methods },
+      ACTIVE_PLATFORM_BANNERS: perfdiag('banners') { active_platform_banners }
     }
   end
 
