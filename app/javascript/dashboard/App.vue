@@ -49,7 +49,7 @@ export default {
     const currentUser = useMapGetter('getCurrentUser');
     const authUIFlags = useMapGetter('getAuthUIFlags');
     const unreadConversationsCount = useMapGetter(
-      'conversations/getMineUnreadConversationsCount'
+      'conversations/getUnreadConversationsCount'
     );
 
     // Watch unread count for PWA badge

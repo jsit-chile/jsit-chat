@@ -89,6 +89,19 @@ class Conversation < ApplicationRecord
 
     open.where('last_activity_at < ?', Time.now.utc - auto_resolve_after.minutes)
   }
+  # Conversations shown as unread in the conversation list: never opened by an
+  # agent (agent_last_seen_at is NULL — an epoch sentinel means corrupt data, not
+  # unread) or with an incoming message newer than agent_last_seen_at.
+  scope :with_unread_incoming_messages, lambda {
+    never_seen = arel_table[:agent_last_seen_at].eq(nil)
+    new_reply_since_seen = arel_table[:agent_last_seen_at].gteq(arel_table[:created_at])
+                                                          .and(Message.arel_table[:created_at].gt(arel_table[:agent_last_seen_at]))
+
+    joins(:messages)
+      .merge(Message.incoming.reorder(nil))
+      .where(never_seen.or(new_reply_since_seen))
+      .distinct
+  }
 
   scope :last_user_message_at, lambda {
     joins(

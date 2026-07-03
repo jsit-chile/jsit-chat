@@ -18,40 +18,20 @@ class JsystemBadgePushJob < ApplicationJob
 
   private
 
-  # The badge counts open conversations with a fresh customer reply the agent hasn't
-  # read yet. The breakdown carries the other buckets for diagnostics only.
+  # The badge counts the conversations the dashboard shows as unread (open, with
+  # unread incoming messages). The breakdown carries the other buckets for
+  # diagnostics only.
   def compute_metrics(account)
-    unread_ids = unread_conversations(account).ids
+    unread = account.conversations.open.with_unread_incoming_messages.count
 
     {
-      count: unread_ids.size,
+      count: unread,
       breakdown: {
         unassigned: account.conversations.open.unassigned.count,
-        unread: unread_ids.size,
+        unread: unread,
         open: account.conversations.open.count
       }
     }
-  end
-
-  # Open conversations the agent has genuinely seen (agent_last_seen_at is a real
-  # timestamp at or after creation, which rules out the epoch sentinel left on
-  # never-opened conversations) and that have an unread incoming message newer than
-  # that timestamp.
-  def unread_conversations(account)
-    account.conversations
-           .open
-           .joins(:messages)
-           .merge(Message.incoming.reorder(nil))
-           .where(messages: { account_id: account.id })
-           .where(unread_since_last_seen_condition)
-           .distinct
-  end
-
-  def unread_since_last_seen_condition
-    conversations = Conversation.arel_table
-    messages = Message.arel_table
-    conversations[:agent_last_seen_at].gteq(conversations[:created_at])
-                                      .and(messages[:created_at].gt(conversations[:agent_last_seen_at]))
   end
 
   def push(account_id, metrics)

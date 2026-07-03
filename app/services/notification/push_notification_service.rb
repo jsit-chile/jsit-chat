@@ -39,12 +39,12 @@ class Notification::PushNotificationService
     }
   end
 
-  # Unread notifications for the user in this notification's account, used as the
-  # PWA app icon badge count (navigator.setAppBadge in the service worker). Scoped
-  # per-account to match the in-app unread count (notifications/getUnreadCount),
-  # so the badge stays consistent whether the app is open or closed.
+  # PWA app icon badge count (navigator.setAppBadge in the service worker): open
+  # conversations with unread incoming messages in this notification's account —
+  # the same number the Conversations menu shows as unread, regardless of
+  # assignee, so the badge matches the in-app sync when the app is open.
   def unread_count
-    user.notifications.where(account_id: notification.account_id, read_at: nil).count
+    notification.account.conversations.open.with_unread_incoming_messages.count
   end
 
   def push_url
