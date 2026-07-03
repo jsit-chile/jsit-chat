@@ -65,6 +65,7 @@ export const mutations = {
       me: 0,
       unassigned: 0,
       all: 0,
+      unread: 0,
       appliedFilters: 0,
     };
 
@@ -72,6 +73,7 @@ export const mutations = {
       me: false,
       unassigned: false,
       all: false,
+      unread: false,
       appliedFilters: false,
     };
   },

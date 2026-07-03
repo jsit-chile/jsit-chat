@@ -40,6 +40,7 @@ json.messages do
   end
 end
 
+json.unread_count conversation.unread_incoming_messages.count
 json.timestamp conversation.last_activity_at.to_i
 json.last_activity_at conversation.last_activity_at.to_i
 json.created_at conversation.created_at.to_i
