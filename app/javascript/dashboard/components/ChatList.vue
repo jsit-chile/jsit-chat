@@ -883,7 +883,7 @@ watch(conversationFilters, (newVal, oldVal) => {
 
 <template>
   <div
-    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-n-surface-1 relative"
+    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-n-surface-1 relative max-w-full min-w-0"
     :class="[
       { hidden: !showConversationList },
       isOnExpandedLayout ? 'basis-full' : 'w-[340px] 2xl:w-[412px]',
@@ -928,13 +928,13 @@ watch(conversationFilters, (newVal, oldVal) => {
 
     <div
       v-if="!hasAppliedFiltersOrActiveFolders"
-      class="flex items-center justify-between"
+      class="flex items-center justify-between min-w-0"
     >
       <ChatTypeTabs
         :items="assigneeTabItems"
         :active-tab="activeAssigneeTab"
         is-compact
-        class="flex-1"
+        class="flex-1 min-w-0"
         @chat-tab-change="updateAssigneeTab"
       />
       <button
