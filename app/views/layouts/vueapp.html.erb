@@ -26,7 +26,7 @@
       <link class="favicon" rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
       <link class="favicon" rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=3">
       <link class="favicon" rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
-      <link rel="manifest" href="/manifest.json?v=3">
+      <link rel="manifest" href="/manifest.json?v=4">
     <% end %>
     <link rel="icon" type="image/png" sizes="512x512" href="<%= @global_config['LOGO_THUMBNAIL'] %>?v=3">
     <%= csrf_meta_tags %>
@@ -72,6 +72,9 @@
     </script>
     <% end %>
     <style>
+      /* While the splash exists, paint the document itself in the brand color so
+         no dark/blank frame shows before #app-loading renders */
+      html:has(#app-loading) { background: #2F81F7; }
       #app-loading {
         position: fixed;
         inset: 0;
