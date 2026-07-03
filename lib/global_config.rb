@@ -5,8 +5,12 @@ class GlobalConfig
 
   class << self
     def get(*args)
-      config_keys = args.flatten
-      config = load_many_from_cache(config_keys)
+      config_keys = *args
+      config = {}
+
+      config_keys.each do |config_key|
+        config[config_key] = load_from_cache(config_key)
+      end
 
       typecast_config(config)
       config.with_indifferent_access
@@ -37,32 +41,13 @@ class GlobalConfig
       cache_key = "#{VERSION}:#{KEY_PREFIX}:#{config_key}"
       cached_value = $alfred.with { |conn| conn.get(cache_key) }
 
-      cached_value = warm_cache(config_key) if cached_value.blank?
+      if cached_value.blank?
+        value_from_db = db_fallback(config_key)
+        cached_value = { value: value_from_db }.to_json
+        $alfred.with { |conn| conn.set(cache_key, cached_value, { ex: DEFAULT_EXPIRY }) }
+      end
 
       JSON.parse(cached_value)['value']
-    end
-
-    # Fetches every key in a single Redis round-trip (MGET) instead of one GET
-    # per key. This keeps the dashboard HTML document fast even when Redis has
-    # meaningful network latency.
-    def load_many_from_cache(config_keys)
-      cache_keys = config_keys.map { |config_key| "#{VERSION}:#{KEY_PREFIX}:#{config_key}" }
-      cached_values = $alfred.with { |conn| conn.mget(*cache_keys) }
-
-      config = {}
-      config_keys.each_with_index do |config_key, index|
-        cached_value = cached_values[index]
-        cached_value = warm_cache(config_key) if cached_value.blank?
-        config[config_key] = JSON.parse(cached_value)['value']
-      end
-      config
-    end
-
-    def warm_cache(config_key)
-      cache_key = "#{VERSION}:#{KEY_PREFIX}:#{config_key}"
-      cached_value = { value: db_fallback(config_key) }.to_json
-      $alfred.with { |conn| conn.set(cache_key, cached_value, { ex: DEFAULT_EXPIRY }) }
-      cached_value
     end
 
     def db_fallback(config_key)
