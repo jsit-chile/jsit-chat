@@ -18,18 +18,24 @@ class JsystemBadgePushJob < ApplicationJob
 
   private
 
+  # jSystem stores the breakdown as an opaque JSON blob, so the ID list rides
+  # along without schema changes on its side; cap it to keep the payload small.
+  MAX_CONVERSATION_IDS = 50
+
   # The badge counts the conversations the dashboard shows as unread (open, with
-  # unread incoming messages). The breakdown carries the other buckets for
-  # diagnostics only.
+  # unread incoming messages). The breakdown carries the other buckets plus the
+  # display_ids of the unread conversations so jSystem can link to each one.
   def compute_metrics(account)
-    unread = account.conversations.open.with_unread_incoming_messages.count
+    unread_ids = account.conversations.open.with_unread_incoming_messages
+                        .order(:display_id).pluck(:display_id)
 
     {
-      count: unread,
+      count: unread_ids.size,
       breakdown: {
         unassigned: account.conversations.open.unassigned.count,
-        unread: unread,
-        open: account.conversations.open.count
+        unread: unread_ids.size,
+        open: account.conversations.open.count,
+        conversation_ids: unread_ids.first(MAX_CONVERSATION_IDS)
       }
     }
   end
