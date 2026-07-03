@@ -51,4 +51,12 @@ export const ASSIGNEE_TYPE_TAB_PERMISSIONS = {
       CONVERSATION_UNASSIGNED_PERMISSIONS,
     ],
   },
+  unread: {
+    count: 'unreadCount',
+    permissions: [
+      ...ROLES,
+      MANAGE_ALL_CONVERSATION_PERMISSIONS,
+      CONVERSATION_PARTICIPATING_PERMISSIONS,
+    ],
+  },
 };

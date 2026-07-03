@@ -320,6 +320,10 @@ const conversationList = computed(() => {
       localConversationList = [...mineChatsList.value(filters)];
     } else if (activeAssigneeTab.value === 'unassigned') {
       localConversationList = [...unAssignedChatsList.value(filters)];
+    } else if (activeAssigneeTab.value === 'unread') {
+      localConversationList = allChatList
+        .value(filters)
+        .filter(c => c.unread_count > 0);
     } else {
       localConversationList = [...allChatList.value(filters)];
     }

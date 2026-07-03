@@ -40,36 +40,17 @@ class ConversationFinder
   def perform
     set_up
 
-    mine_count, unassigned_count, all_count, = set_count_for_all_conversations
-    assigned_count = all_count - unassigned_count
+    counts = conversation_counts
 
     filter_by_assignee_type
 
-    {
-      conversations: conversations,
-      count: {
-        mine_count: mine_count,
-        assigned_count: assigned_count,
-        unassigned_count: unassigned_count,
-        all_count: all_count
-      }
-    }
+    { conversations: conversations, count: counts }
   end
 
   def perform_meta_only
     set_up
 
-    mine_count, unassigned_count, all_count, = set_count_for_all_conversations
-    assigned_count = all_count - unassigned_count
-
-    {
-      count: {
-        mine_count: mine_count,
-        assigned_count: assigned_count,
-        unassigned_count: unassigned_count,
-        all_count: all_count
-      }
-    }
+    { count: conversation_counts }
   end
 
   private
@@ -131,6 +112,8 @@ class ConversationFinder
       @conversations = @conversations.unassigned
     when 'assigned'
       @conversations = @conversations.assigned
+    when 'unread'
+      @conversations = @conversations.with_unread_incoming_messages
     end
     @conversations
   end
@@ -183,12 +166,17 @@ class ConversationFinder
     @conversations = @conversations.where(contact_inboxes: { source_id: params[:source_id] })
   end
 
-  def set_count_for_all_conversations
-    [
-      @conversations.assigned_to(current_user).count,
-      @conversations.unassigned.count,
-      @conversations.count
-    ]
+  def conversation_counts
+    unassigned_count = @conversations.unassigned.count
+    all_count = @conversations.count
+
+    {
+      mine_count: @conversations.assigned_to(current_user).count,
+      assigned_count: all_count - unassigned_count,
+      unassigned_count: unassigned_count,
+      all_count: all_count,
+      unread_count: @conversations.with_unread_incoming_messages.count
+    }
   end
 
   def current_page
