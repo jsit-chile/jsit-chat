@@ -164,9 +164,8 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
     # rubocop:enable Rails/SkipsModelValidations
 
     ::Conversations::UnreadCounts::Notifier.new(@conversation).perform
-    # update_columns skips model callbacks, so no conversation event reaches
-    # JsystemBadgeListener; enqueue the badge push directly so reading (or
-    # marking unread) syncs the jSystem badge without waiting for the cron.
+    # update_columns skips callbacks, so JsystemBadgeListener never fires here;
+    # enqueue directly so reading/unreading syncs jSystem without the cron lag.
     JsystemBadgePushJob.perform_later if @conversation.account_id == JsystemBadgePushJob::ACCOUNT_ID
   end
 

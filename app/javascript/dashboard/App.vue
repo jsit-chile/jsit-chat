@@ -19,6 +19,7 @@ import {
   verifyServiceWorkerExistence,
   setAppBadge,
 } from './helper/pushHelper';
+import ConversationApi from 'dashboard/api/inbox/conversation';
 import ReconnectService from 'dashboard/helper/ReconnectService';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { watch } from 'vue';
@@ -52,16 +53,21 @@ export default {
       'conversations/getUnreadConversationsCount'
     );
 
-    // Sync the PWA badge with the unread conversations count. `immediate`
-    // clears stale badges left by old pushes even when the count never
-    // changes after opening the app (e.g. everything is already read).
-    watch(
-      unreadConversationsCount,
-      count => {
-        setAppBadge(count);
-      },
-      { immediate: true }
-    );
+    // The PWA badge mirrors the account-wide unread conversations count from
+    // the backend — the same source as the push payload and the jSystem badge.
+    // The local getter only sees loaded conversations, so it is used as a
+    // change signal to re-fetch (e.g. after reading a conversation).
+    const syncAppBadge = async () => {
+      if (!accountId.value) return;
+      try {
+        const { data } = await ConversationApi.unreadCount();
+        setAppBadge(data.count);
+      } catch {
+        // transient network error: keep the current badge
+      }
+    };
+    watch(accountId, id => id && syncAppBadge(), { immediate: true });
+    watch(unreadConversationsCount, syncAppBadge);
 
     return {
       router,
@@ -73,7 +79,7 @@ export default {
       isRTL,
       currentUser,
       authUIFlags,
-      unreadConversationsCount,
+      syncAppBadge,
     };
   },
   data() {
@@ -101,6 +107,8 @@ export default {
   mounted() {
     this.initializeColorTheme();
     this.listenToThemeChanges();
+    // Re-sync the badge whenever the PWA comes back to the foreground
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     // If user locale is set, use it; otherwise use account locale
     this.setLocale(
       this.uiSettings?.locale || window.jChatConfig.selectedLocale
@@ -118,11 +126,15 @@ export default {
     }
   },
   unmounted() {
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     if (this.reconnectService) {
       this.reconnectService.disconnect();
     }
   },
   methods: {
+    onVisibilityChange() {
+      if (!document.hidden) this.syncAppBadge();
+    },
     initializeColorTheme() {
       setColorTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
     },

@@ -133,6 +133,7 @@ Rails.application.routes.draw do
             collection do
               get :meta
               get :search
+              get :unread_count, to: 'conversations/unread_counts#total'
               get :unread_counts, to: 'conversations/unread_counts#index'
               post :filter
             end
