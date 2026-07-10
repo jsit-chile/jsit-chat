@@ -14,6 +14,7 @@ describe Notification::PushNotificationService do
         allow(Rails.logger).to receive(:info)
         allow(Notification::FcmService).to receive(:new).and_return(fcm_service_double)
         allow(fcm_double).to receive(:send_v1).and_return({ body: { 'results': [] }.to_json })
+        allow(GlobalConfigService).to receive(:load).and_call_original
         allow(GlobalConfigService).to receive(:load).with('FIREBASE_PROJECT_ID', nil).and_return('test_project_id')
         allow(GlobalConfigService).to receive(:load).with('FIREBASE_CREDENTIALS', nil).and_return('test_credentials')
       end

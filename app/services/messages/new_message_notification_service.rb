@@ -47,7 +47,10 @@ class Messages::NewMessageNotificationService
   # Notify every inbox member on each new message so supervisors following the
   # inbox (e.g. AI-secretary workflows) get notified regardless of the assignee.
   # Push/email delivery still respects each user's notification settings.
+  # Incoming only: outgoing replies sent by workflows/bots shouldn't notify.
   def notify_inbox_members
+    return unless message.incoming?
+
     inbox_members = conversation.inbox.members.to_a
     inbox_members -= [sender] if sender.is_a?(User)
 

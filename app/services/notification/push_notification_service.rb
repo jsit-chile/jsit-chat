@@ -33,7 +33,9 @@ class Notification::PushNotificationService
   def push_message
     {
       title: notification.push_message_title,
-      tag: "#{notification.notification_type}_#{conversation.display_id}_#{notification.id}",
+      # One tag per conversation so new pushes replace the previous banner
+      # instead of stacking one notification per message.
+      tag: "conversation_#{conversation.display_id}",
       url: push_url,
       count: unread_count
     }
