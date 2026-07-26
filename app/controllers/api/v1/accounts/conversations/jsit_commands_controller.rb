@@ -1,4 +1,8 @@
 class Api::V1::Accounts::Conversations::JsitCommandsController < Api::V1::Accounts::Conversations::BaseController
+  def show
+    render json: { bot_enabled: Jsit::BotStateService.new(conversation: @conversation).enabled? }
+  end
+
   def create
     sent = Jsit::ComandoService.new(conversation: @conversation, comando: params[:comando]).perform
     return head :bad_gateway unless sent

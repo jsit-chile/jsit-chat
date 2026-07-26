@@ -1,9 +1,9 @@
 <script setup>
-import { computed } from 'vue';
-import { useStore } from 'vuex';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useJsitComando } from 'dashboard/composables/useJsitComando';
+import ConversationApi from 'dashboard/api/inbox/conversation';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
@@ -13,21 +13,34 @@ const props = defineProps({
   },
 });
 
-const store = useStore();
 const { t } = useI18n();
 const { isSending, sendComando } = useJsitComando();
 
-// The bot is off until an agent turns it on, which is what writes the Redis
-// record on the jWorkflows side.
-const isBotEnabled = computed(
-  () => props.chat.custom_attributes?.jsit_bot_enabled === true
-);
+// jWorkflows keeps the bot state in its own Redis, so it is fetched per
+// conversation instead of derived from the conversation payload.
+const isBotEnabled = ref(false);
+const isLoadingState = ref(false);
 
 const tooltip = computed(() =>
   isBotEnabled.value
     ? t('CONVERSATION.HEADER.JSIT_BOT.TURN_OFF')
     : t('CONVERSATION.HEADER.JSIT_BOT.TURN_ON')
 );
+
+const fetchBotState = async conversationId => {
+  if (!conversationId) return;
+  isLoadingState.value = true;
+  try {
+    const { data } = await ConversationApi.fetchJsitBotState(conversationId);
+    isBotEnabled.value = data.bot_enabled;
+  } catch (error) {
+    isBotEnabled.value = false;
+  } finally {
+    isLoadingState.value = false;
+  }
+};
+
+watch(() => props.chat.id, fetchBotState, { immediate: true });
 
 const toggleBot = async () => {
   const nextState = !isBotEnabled.value;
@@ -37,11 +50,7 @@ const toggleBot = async () => {
   });
   if (!sent) return;
 
-  // The backend already persisted the flag, so this only syncs the store.
-  store.commit('UPDATE_CONVERSATION_CUSTOM_ATTRIBUTES', {
-    conversationId: props.chat.id,
-    customAttributes: { jsit_bot_enabled: nextState },
-  });
+  isBotEnabled.value = nextState;
   useAlert(
     nextState
       ? t('CONVERSATION.HEADER.JSIT_BOT.TURNED_ON')
@@ -57,7 +66,7 @@ const toggleBot = async () => {
     ghost
     :color="isBotEnabled ? 'teal' : 'slate'"
     :icon="isBotEnabled ? 'i-lucide-bot' : 'i-lucide-bot-off'"
-    :is-loading="isSending"
+    :is-loading="isSending || isLoadingState"
     @click="toggleBot"
   />
 </template>

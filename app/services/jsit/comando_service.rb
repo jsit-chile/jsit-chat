@@ -35,18 +35,8 @@ class Jsit::ComandoService
       comando: @comando,
       account_id: @conversation.account_id,
       conversation_id: @conversation.display_id,
-      wa_id: wa_id
+      wa_id: Jsit::WaId.for(@conversation)
     }
-  end
-
-  # The contact phone number is the reliable source: API inboxes (WhatsApp via
-  # n8n) store a UUID as source_id, only native WhatsApp inboxes keep the number.
-  def wa_id
-    phone = @conversation.contact&.phone_number.to_s.gsub(/\D/, '')
-    return phone if phone.present?
-
-    source_id = @conversation.contact_inbox&.source_id.to_s
-    source_id.match?(/\A\+?\d+\z/) ? source_id.delete('+') : ''
   end
 
   def log_response(code)
