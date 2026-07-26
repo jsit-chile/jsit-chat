@@ -37,12 +37,10 @@ const toggleBot = async () => {
   });
   if (!sent) return;
 
-  await store.dispatch('updateCustomAttributes', {
+  // The backend already persisted the flag, so this only syncs the store.
+  store.commit('UPDATE_CONVERSATION_CUSTOM_ATTRIBUTES', {
     conversationId: props.chat.id,
-    customAttributes: {
-      ...(props.chat.custom_attributes || {}),
-      jsit_bot_enabled: nextState,
-    },
+    customAttributes: { jsit_bot_enabled: nextState },
   });
   useAlert(
     nextState
