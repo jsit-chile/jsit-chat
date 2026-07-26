@@ -117,6 +117,9 @@
       "WHATSAPP_CALL_PERMISSION_REQUESTED": "Sent a call permission request to the contact. Try again once they accept.",
       "WHATSAPP_CALL_PERMISSION_PENDING": "Call permission request already sent recently. Try again once the contact accepts.",
       "JSIT_BOT": {
+        "LABEL_ON": "Bot ON",
+        "LABEL_OFF": "Bot OFF",
+        "REPLY_LABEL": "AI reply",
         "TURN_ON": "Turn the bot on for this conversation",
         "TURN_OFF": "Turn the bot off for this conversation",
         "TURNED_ON": "Bot turned on for this conversation",

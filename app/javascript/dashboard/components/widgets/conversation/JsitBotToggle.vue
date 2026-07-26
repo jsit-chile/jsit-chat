@@ -62,9 +62,14 @@ const toggleBot = async () => {
 <template>
   <NextButton
     v-tooltip.bottom="tooltip"
-    sm
-    ghost
-    :color="isBotEnabled ? 'teal' : 'slate'"
+    size="sm"
+    :label="
+      isBotEnabled
+        ? t('CONVERSATION.HEADER.JSIT_BOT.LABEL_ON')
+        : t('CONVERSATION.HEADER.JSIT_BOT.LABEL_OFF')
+    "
+    :variant="isBotEnabled ? 'solid' : 'faded'"
+    :color="isBotEnabled ? 'teal' : 'ruby'"
     :icon="isBotEnabled ? 'i-lucide-bot' : 'i-lucide-bot-off'"
     :is-loading="isSending || isLoadingState"
     @click="toggleBot"

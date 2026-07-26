@@ -182,10 +182,13 @@ const copyConversationId = async () => {
         class="hidden md:flex"
       />
       <ConversationCallButton :inbox="inbox" :chat="currentChat" />
-      <template v-if="showJsitBotActions">
+      <div
+        v-if="showJsitBotActions"
+        class="flex items-center gap-1.5 p-1 rounded-xl bg-n-alpha-1 outline outline-1 outline-n-container"
+      >
         <JsitBotToggle :chat="currentChat" />
         <JsitAiReplyButton :chat="currentChat" />
-      </template>
+      </div>
       <MoreActions :conversation-id="currentChat.id" />
     </div>
   </div>

@@ -26,9 +26,10 @@ const requestAiReply = async () => {
 <template>
   <NextButton
     v-tooltip.bottom="$t('CONVERSATION.HEADER.JSIT_BOT.REPLY')"
-    sm
-    ghost
-    slate
+    size="sm"
+    variant="solid"
+    color="blue"
+    :label="$t('CONVERSATION.HEADER.JSIT_BOT.REPLY_LABEL')"
     icon="i-lucide-bot-message-square"
     :is-loading="isSending"
     @click="requestAiReply"

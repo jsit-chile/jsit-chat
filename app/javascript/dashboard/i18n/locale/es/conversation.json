@@ -100,6 +100,18 @@
       "SNOOZED_UNTIL_TOMORROW": "Pospuesto hasta mañana",
       "SNOOZED_UNTIL_NEXT_WEEK": "Pospuesto hasta la próxima semana",
       "SNOOZED_UNTIL_NEXT_REPLY": "Posponer hasta la siguiente respuesta",
+      "JSIT_BOT": {
+        "LABEL_ON": "Bot ON",
+        "LABEL_OFF": "Bot OFF",
+        "REPLY_LABEL": "Responder con IA",
+        "TURN_ON": "Activar el bot en esta conversación",
+        "TURN_OFF": "Apagar el bot en esta conversación",
+        "TURNED_ON": "Bot activado en esta conversación",
+        "TURNED_OFF": "Bot apagado en esta conversación",
+        "REPLY": "Generar una respuesta con IA",
+        "REPLY_REQUESTED": "Respuesta con IA solicitada",
+        "ERROR": "No se pudo contactar el servicio de automatización. Inténtalo de nuevo."
+      },
       "SLA_STATUS": {
         "FRT": "FRT {status}",
         "NRT": "NRT {status}",
