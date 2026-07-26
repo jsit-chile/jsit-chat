@@ -9,6 +9,8 @@ import MoreActions from './MoreActions.vue';
 import Avatar from 'next/avatar/Avatar.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
 import ConversationCallButton from './ConversationCallButton.vue';
+import JsitBotToggle from './JsitBotToggle.vue';
+import JsitAiReplyButton from './JsitAiReplyButton.vue';
 import wootConstants from 'dashboard/constants/globals';
 import { conversationListPageURL } from 'dashboard/helper/URLHelper';
 import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
@@ -33,7 +35,7 @@ const store = useStore();
 const route = useRoute();
 const conversationHeader = ref(null);
 const { width } = useElementSize(conversationHeader);
-const { isAWebWidgetInbox } = useInbox();
+const { isAWebWidgetInbox, isAWhatsAppChannel, isAPIInbox } = useInbox();
 
 const currentChat = computed(() => store.getters.getSelectedChat);
 const accountId = computed(() => store.getters.getCurrentAccountId);
@@ -94,6 +96,12 @@ const hasMultipleInboxes = computed(
 );
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
+
+// WhatsApp reaches JSIT either through a native WhatsApp inbox or through an
+// API inbox bridged by n8n, so the bot controls show up on both.
+const showJsitBotActions = computed(
+  () => isAWhatsAppChannel.value || isAPIInbox.value
+);
 
 const copyConversationId = async () => {
   try {
@@ -174,6 +182,10 @@ const copyConversationId = async () => {
         class="hidden md:flex"
       />
       <ConversationCallButton :inbox="inbox" :chat="currentChat" />
+      <template v-if="showJsitBotActions">
+        <JsitBotToggle :chat="currentChat" />
+        <JsitAiReplyButton :chat="currentChat" />
+      </template>
       <MoreActions :conversation-id="currentChat.id" />
     </div>
   </div>

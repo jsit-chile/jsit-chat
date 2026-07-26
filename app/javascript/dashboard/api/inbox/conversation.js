@@ -123,6 +123,12 @@ class ConversationApi extends ApiClient {
     });
   }
 
+  sendJsitCommand({ conversationId, comando }) {
+    return axios.post(`${this.url}/${conversationId}/jsit_command`, {
+      comando,
+    });
+  }
+
   fetchParticipants(conversationId) {
     return axios.get(`${this.url}/${conversationId}/participants`);
   }

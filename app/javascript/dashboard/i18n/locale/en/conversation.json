@@ -116,6 +116,15 @@
       "VOICE_CALL_FAILED": "Could not start the call.",
       "WHATSAPP_CALL_PERMISSION_REQUESTED": "Sent a call permission request to the contact. Try again once they accept.",
       "WHATSAPP_CALL_PERMISSION_PENDING": "Call permission request already sent recently. Try again once the contact accepts.",
+      "JSIT_BOT": {
+        "TURN_ON": "Turn the bot on for this conversation",
+        "TURN_OFF": "Turn the bot off for this conversation",
+        "TURNED_ON": "Bot turned on for this conversation",
+        "TURNED_OFF": "Bot turned off for this conversation",
+        "REPLY": "Generate an AI reply",
+        "REPLY_REQUESTED": "AI reply requested",
+        "ERROR": "Could not reach the automation service. Please try again."
+      },
       "SLA_STATUS": {
         "FRT": "FRT {status}",
         "NRT": "NRT {status}",

@@ -1,0 +1,59 @@
+# Bridges the conversation header bot controls to the JSIT automation workflow.
+# The shared secret lives only on the server, so the dashboard posts here and
+# this service forwards the command to n8n.
+class Jsit::ComandoService
+  DEFAULT_URL = 'https://workflows.jsit.cl/webhook/jchat-comando'.freeze
+  REQUEST_TIMEOUT = 20
+  COMANDOS = %w[on off respond].freeze
+
+  def initialize(conversation:, comando:)
+    @conversation = conversation
+    @comando = comando.to_s
+  end
+
+  def perform
+    return false unless COMANDOS.include?(@comando)
+
+    response = HTTParty.post(
+      ENV.fetch('JSIT_COMANDO_URL', DEFAULT_URL),
+      headers: { 'Content-Type' => 'application/json', 'X-JSIT-Secret' => ENV.fetch('JSIT_COMANDO_SECRET', '') },
+      body: payload.to_json,
+      timeout: REQUEST_TIMEOUT
+    )
+
+    log_response(response.code)
+    response.success?
+  rescue StandardError => e
+    Rails.logger.error("[JsitComando] #{@comando} failed: #{e.class}: #{e.message}")
+    false
+  end
+
+  private
+
+  def payload
+    {
+      comando: @comando,
+      account_id: @conversation.account_id,
+      conversation_id: @conversation.display_id,
+      wa_id: wa_id
+    }
+  end
+
+  # The contact phone number is the reliable source: API inboxes (WhatsApp via
+  # n8n) store a UUID as source_id, only native WhatsApp inboxes keep the number.
+  def wa_id
+    phone = @conversation.contact&.phone_number.to_s.gsub(/\D/, '')
+    return phone if phone.present?
+
+    source_id = @conversation.contact_inbox&.source_id.to_s
+    source_id.match?(/\A\+?\d+\z/) ? source_id.delete('+') : ''
+  end
+
+  def log_response(code)
+    if code == 200
+      Rails.logger.info("[JsitComando] #{@comando} sent (conversation=#{@conversation.display_id})")
+    else
+      Rails.logger.error("[JsitComando] #{@comando} rejected status=#{code} (conversation=#{@conversation.display_id})")
+    end
+  end
+end
