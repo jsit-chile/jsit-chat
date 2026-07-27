@@ -2,9 +2,8 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
-import { useJsitComando } from 'dashboard/composables/useJsitComando';
-import ConversationApi from 'dashboard/api/inbox/conversation';
 import { useJsitBotStore } from 'dashboard/stores/jsitBot';
+import ConversationApi from 'dashboard/api/inbox/conversation';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
@@ -15,12 +14,11 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const { isSending, sendComando } = useJsitComando();
 const jsitBotStore = useJsitBotStore();
 
-// jWorkflows keeps the bot state in its own Redis, so it is fetched per
-// conversation instead of derived from the conversation payload.
-const isBotEnabled = ref(false);
+// The store is the single client side source of truth, so this button and the
+// chips in the conversation list always show the same state.
+const isBotEnabled = computed(() => jsitBotStore.isEnabled(props.chat.id));
 const isLoadingState = ref(false);
 
 const tooltip = computed(() =>
@@ -29,15 +27,16 @@ const tooltip = computed(() =>
     : t('CONVERSATION.HEADER.JSIT_BOT.TURN_ON')
 );
 
+// Opening a conversation revalidates it against the jWorkflows Redis, which
+// also corrects the store if the workflow changed the state on its own.
 const fetchBotState = async conversationId => {
   if (!conversationId) return;
   isLoadingState.value = true;
   try {
     const { data } = await ConversationApi.fetchJsitBotState(conversationId);
-    isBotEnabled.value = data.bot_enabled;
     jsitBotStore.setState(conversationId, data.bot_enabled);
   } catch (error) {
-    isBotEnabled.value = false;
+    // Keep whatever the store already has
   } finally {
     isLoadingState.value = false;
   }
@@ -46,19 +45,16 @@ const fetchBotState = async conversationId => {
 watch(() => props.chat.id, fetchBotState, { immediate: true });
 
 const toggleBot = async () => {
-  const nextState = !isBotEnabled.value;
-  const sent = await sendComando({
-    conversationId: props.chat.id,
-    comando: nextState ? 'on' : 'off',
-  });
-  if (!sent) return;
-
-  isBotEnabled.value = nextState;
-  jsitBotStore.setState(props.chat.id, nextState);
+  const wasEnabled = isBotEnabled.value;
+  const done = await jsitBotStore.toggle(props.chat.id);
+  if (!done) {
+    useAlert(t('CONVERSATION.HEADER.JSIT_BOT.ERROR'));
+    return;
+  }
   useAlert(
-    nextState
-      ? t('CONVERSATION.HEADER.JSIT_BOT.TURNED_ON')
-      : t('CONVERSATION.HEADER.JSIT_BOT.TURNED_OFF')
+    wasEnabled
+      ? t('CONVERSATION.HEADER.JSIT_BOT.TURNED_OFF')
+      : t('CONVERSATION.HEADER.JSIT_BOT.TURNED_ON')
   );
 };
 </script>
@@ -75,7 +71,7 @@ const toggleBot = async () => {
     :variant="isBotEnabled ? 'solid' : 'faded'"
     :color="isBotEnabled ? 'teal' : 'ruby'"
     :icon="isBotEnabled ? 'i-lucide-bot' : 'i-lucide-bot-off'"
-    :is-loading="isSending || isLoadingState"
+    :is-loading="jsitBotStore.isPending(chat.id) || isLoadingState"
     @click="toggleBot"
   />
 </template>
