@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useJsitComando } from 'dashboard/composables/useJsitComando';
 import ConversationApi from 'dashboard/api/inbox/conversation';
+import { useJsitBotStore } from 'dashboard/stores/jsitBot';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
@@ -15,6 +16,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isSending, sendComando } = useJsitComando();
+const jsitBotStore = useJsitBotStore();
 
 // jWorkflows keeps the bot state in its own Redis, so it is fetched per
 // conversation instead of derived from the conversation payload.
@@ -33,6 +35,7 @@ const fetchBotState = async conversationId => {
   try {
     const { data } = await ConversationApi.fetchJsitBotState(conversationId);
     isBotEnabled.value = data.bot_enabled;
+    jsitBotStore.setState(conversationId, data.bot_enabled);
   } catch (error) {
     isBotEnabled.value = false;
   } finally {
@@ -51,6 +54,7 @@ const toggleBot = async () => {
   if (!sent) return;
 
   isBotEnabled.value = nextState;
+  jsitBotStore.setState(props.chat.id, nextState);
   useAlert(
     nextState
       ? t('CONVERSATION.HEADER.JSIT_BOT.TURNED_ON')

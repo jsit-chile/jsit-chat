@@ -11,6 +11,7 @@ import UnreadBadge from 'dashboard/components-next/Conversation/ConversationCard
 import SLACardLabel from './components/SLACardLabel.vue';
 import VoiceCallStatus from './VoiceCallStatus.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
+import JsitBotChip from './JsitBotChip.vue';
 
 const props = defineProps({
   chat: { type: Object, required: true },
@@ -219,6 +220,9 @@ watch(
           :count="unreadCount"
           class="ltr:ml-auto rtl:mr-auto mt-1"
         />
+      </div>
+      <div class="flex items-center mx-2 mt-1">
+        <JsitBotChip :conversation-id="chat.id" />
       </div>
       <CardLabels
         v-if="showLabelsSection"

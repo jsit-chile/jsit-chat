@@ -2,6 +2,7 @@
 import { ref, unref, provide, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
+import { useJsitBotStore } from 'dashboard/stores/jsitBot';
 import {
   useMapGetter,
   useFunctionGetter,
@@ -69,6 +70,7 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
+const jsitBotStore = useJsitBotStore();
 
 const resolveAttributesModalRef = ref(null);
 
@@ -813,6 +815,7 @@ onMounted(() => {
   if (hasActiveFolders.value) {
     store.dispatch('campaigns/get');
   }
+  jsitBotStore.fetchStates();
 });
 
 const deleteConversationDialogRef = ref(null);
