@@ -551,7 +551,13 @@ en:
       subject: 'Finish setting up %{custom_domain}'
     ssl_status:
       custom_domain_not_configured: 'Custom domain is not configured'
+  helpers:
+    label:
+      account:
+        jsit_ai_functions: 'Funciones AI'
   super_admin:
+    ai_functions_enabled: 'Funciones AI activadas para %{name}'
+    ai_functions_disabled: 'Funciones AI desactivadas para %{name}'
     push_diagnostics:
       user_not_found: 'User not found.'
       no_subscriptions_to_test: 'Select at least one subscription to test.'

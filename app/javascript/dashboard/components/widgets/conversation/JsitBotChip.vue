@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useJsitBotStore } from 'dashboard/stores/jsitBot';
+import { useJsitAiFunctions } from 'dashboard/composables/useJsitAiFunctions';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 
 const props = defineProps({
@@ -11,7 +12,8 @@ const props = defineProps({
 
 const { t } = useI18n();
 const jsitBotStore = useJsitBotStore();
-
+// Accounts without the AI functions switch never see the bot controls.
+const { isAiFunctionsEnabled: isAvailable } = useJsitAiFunctions();
 const isEnabled = computed(() => jsitBotStore.isEnabled(props.conversationId));
 const isPending = computed(() => jsitBotStore.isPending(props.conversationId));
 
@@ -32,6 +34,7 @@ const toggle = async () => {
 
 <template>
   <button
+    v-if="isAvailable"
     v-tooltip.top="
       isEnabled
         ? $t('CONVERSATION.HEADER.JSIT_BOT.TURN_OFF')
@@ -59,4 +62,5 @@ const toggle = async () => {
       }}
     </span>
   </button>
+  <template v-else />
 </template>

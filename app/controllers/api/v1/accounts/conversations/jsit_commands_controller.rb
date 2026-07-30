@@ -1,4 +1,6 @@
 class Api::V1::Accounts::Conversations::JsitCommandsController < Api::V1::Accounts::Conversations::BaseController
+  before_action :ensure_ai_functions_enabled
+
   def show
     render json: { bot_enabled: Jsit::BotStateService.new(conversation: @conversation).enabled? }
   end
@@ -12,6 +14,10 @@ class Api::V1::Accounts::Conversations::JsitCommandsController < Api::V1::Accoun
   end
 
   private
+
+  def ensure_ai_functions_enabled
+    head :forbidden unless Current.account.jsit_ai_functions
+  end
 
   # update_columns skips the callbacks, so flipping the flag doesn't fire a
   # conversation_updated webhook back into jWorkflows on every toggle.

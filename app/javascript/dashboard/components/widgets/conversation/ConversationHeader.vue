@@ -15,6 +15,7 @@ import wootConstants from 'dashboard/constants/globals';
 import { conversationListPageURL } from 'dashboard/helper/URLHelper';
 import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
 import { useInbox } from 'dashboard/composables/useInbox';
+import { useJsitAiFunctions } from 'dashboard/composables/useJsitAiFunctions';
 import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
@@ -36,6 +37,7 @@ const route = useRoute();
 const conversationHeader = ref(null);
 const { width } = useElementSize(conversationHeader);
 const { isAWebWidgetInbox, isAWhatsAppChannel, isAPIInbox } = useInbox();
+const { isAiFunctionsEnabled } = useJsitAiFunctions();
 
 const currentChat = computed(() => store.getters.getSelectedChat);
 const accountId = computed(() => store.getters.getCurrentAccountId);
@@ -98,9 +100,11 @@ const hasMultipleInboxes = computed(
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 
 // WhatsApp reaches JSIT either through a native WhatsApp inbox or through an
-// API inbox bridged by n8n, so the bot controls show up on both.
+// API inbox bridged by n8n, so the bot controls show up on both, as long as the
+// account has the AI functions switch on in the super admin console.
 const showJsitBotActions = computed(
-  () => isAWhatsAppChannel.value || isAPIInbox.value
+  () =>
+    isAiFunctionsEnabled.value && (isAWhatsAppChannel.value || isAPIInbox.value)
 );
 
 const copyConversationId = async () => {

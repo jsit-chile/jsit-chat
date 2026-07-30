@@ -34,7 +34,8 @@ class AccountDashboard < Administrate::BaseDashboard
     locale: Field::Select.with_options(collection: LANGUAGES_CONFIG.map { |_x, y| y[:iso_639_1_code] }),
     status: Field::Select.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
     account_users: Field::HasMany,
-    custom_attributes: Field::String
+    custom_attributes: Field::String,
+    jsit_ai_functions: AiFunctionsField
   }.merge(enterprise_attribute_types).freeze
 
   # COLLECTION_ATTRIBUTES
@@ -49,6 +50,7 @@ class AccountDashboard < Administrate::BaseDashboard
     users
     conversations
     status
+    jsit_ai_functions
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES

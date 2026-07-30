@@ -1,0 +1,5 @@
+<%= button_to field.to_s,
+      toggle_ai_functions_super_admin_account_path(field.resource),
+      method: :post,
+      class: field.enabled? ? 'button' : 'button button--alt',
+      title: field.enabled? ? 'Desactivar las funciones AI en esta cuenta' : 'Activar las funciones AI en esta cuenta' %>

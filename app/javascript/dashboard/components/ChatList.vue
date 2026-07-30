@@ -3,6 +3,7 @@ import { ref, unref, provide, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import { useJsitBotStore } from 'dashboard/stores/jsitBot';
+import { useJsitAiFunctions } from 'dashboard/composables/useJsitAiFunctions';
 import {
   useMapGetter,
   useFunctionGetter,
@@ -71,6 +72,7 @@ const router = useRouter();
 const route = useRoute();
 const store = useStore();
 const jsitBotStore = useJsitBotStore();
+const { isAiFunctionsEnabled } = useJsitAiFunctions();
 
 const resolveAttributesModalRef = ref(null);
 
@@ -815,7 +817,9 @@ onMounted(() => {
   if (hasActiveFolders.value) {
     store.dispatch('campaigns/get');
   }
-  jsitBotStore.fetchStates();
+  if (isAiFunctionsEnabled.value) {
+    jsitBotStore.fetchStates();
+  }
 });
 
 const deleteConversationDialogRef = ref(null);

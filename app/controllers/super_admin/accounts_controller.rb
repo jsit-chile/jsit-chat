@@ -67,6 +67,16 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
     # rubocop:enable Rails/I18nLocaleTexts
   end
 
+  # Flips the account level switch for the JSIT bot controls in the dashboard.
+  def toggle_ai_functions
+    account = requested_resource
+    enabled = !account.jsit_ai_functions
+    account.update!(custom_attributes: account.custom_attributes.merge('jsit_ai_functions' => enabled))
+
+    notice_key = enabled ? 'super_admin.ai_functions_enabled' : 'super_admin.ai_functions_disabled'
+    redirect_back(fallback_location: [namespace, :accounts], notice: I18n.t(notice_key, name: account.name))
+  end
+
   def destroy
     account = Account.find(params[:id])
 

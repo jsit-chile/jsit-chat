@@ -174,6 +174,12 @@ class Account < ApplicationRecord
     clear_unread_conversation_counts_cache
   end
 
+  # Account level switch for the JSIT bot controls. It lives in custom_attributes
+  # because the feature_flags bigint column is already full at 63 flags.
+  def jsit_ai_functions
+    custom_attributes['jsit_ai_functions'] == true
+  end
+
   private
 
   def notify_creation
