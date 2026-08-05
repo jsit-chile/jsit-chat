@@ -817,10 +817,17 @@ onMounted(() => {
   if (hasActiveFolders.value) {
     store.dispatch('campaigns/get');
   }
-  if (isAiFunctionsEnabled.value) {
-    jsitBotStore.fetchStates();
-  }
 });
+
+// The account arrives after this list mounts on a page reload, so the fetch
+// waits for the AI functions switch instead of reading it once on mount.
+watch(
+  isAiFunctionsEnabled,
+  enabled => {
+    if (enabled) jsitBotStore.fetchStates();
+  },
+  { immediate: true }
+);
 
 const deleteConversationDialogRef = ref(null);
 const selectedConversationId = ref(null);
