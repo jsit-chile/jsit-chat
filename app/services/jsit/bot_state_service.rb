@@ -13,6 +13,19 @@ class Jsit::BotStateService
   end
 
   def enabled?
+    return false if Jsit::BotBlocklist.blocked?(@conversation)
+
+    raw_enabled?
+  end
+
+  # display_ids of the account conversations that currently have the bot on
+  def enabled_display_ids
+    raw_enabled_display_ids - Jsit::BotBlocklist.blocked_display_ids(@account)
+  end
+
+  private
+
+  def raw_enabled?
     return mirrored_state if endpoint.blank?
 
     with_redis { |redis| redis.exists?(key) }
@@ -21,8 +34,7 @@ class Jsit::BotStateService
     mirrored_state
   end
 
-  # display_ids of the account conversations that currently have the bot on
-  def enabled_display_ids
+  def raw_enabled_display_ids
     return mirrored_display_ids if endpoint.blank?
 
     with_redis { |redis| scan_display_ids(redis) }
@@ -30,8 +42,6 @@ class Jsit::BotStateService
     log_failure(e)
     mirrored_display_ids
   end
-
-  private
 
   def scan_display_ids(redis)
     cursor = '0'

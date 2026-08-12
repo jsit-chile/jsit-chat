@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import { useJsitBotStore } from 'dashboard/stores/jsitBot';
+import { isBotBlockedNumber } from 'dashboard/helper/jsitBotHelper';
 import ConversationApi from 'dashboard/api/inbox/conversation';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
@@ -20,6 +21,10 @@ const jsitBotStore = useJsitBotStore();
 // chips in the conversation list always show the same state.
 const isBotEnabled = computed(() => jsitBotStore.isEnabled(props.chat.id));
 const isLoadingState = ref(false);
+// The bot must never answer its own number, so the toggle is not offered there.
+const isBlocked = computed(() =>
+  isBotBlockedNumber(props.chat.meta?.sender?.phone_number)
+);
 
 const tooltip = computed(() =>
   isBotEnabled.value
@@ -30,7 +35,7 @@ const tooltip = computed(() =>
 // Opening a conversation revalidates it against the jWorkflows Redis, which
 // also corrects the store if the workflow changed the state on its own.
 const fetchBotState = async conversationId => {
-  if (!conversationId) return;
+  if (!conversationId || isBlocked.value) return;
   isLoadingState.value = true;
   try {
     const { data } = await ConversationApi.fetchJsitBotState(conversationId);
@@ -61,6 +66,7 @@ const toggleBot = async () => {
 
 <template>
   <NextButton
+    v-if="!isBlocked"
     v-tooltip.bottom="tooltip"
     size="sm"
     :label="
@@ -74,4 +80,5 @@ const toggleBot = async () => {
     :is-loading="jsitBotStore.isPending(chat.id) || isLoadingState"
     @click="toggleBot"
   />
+  <template v-else />
 </template>

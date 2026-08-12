@@ -1,5 +1,6 @@
 class Api::V1::Accounts::Conversations::JsitCommandsController < Api::V1::Accounts::Conversations::BaseController
   before_action :ensure_ai_functions_enabled
+  before_action :ensure_number_not_blocked, only: :create
 
   def show
     render json: { bot_enabled: Jsit::BotStateService.new(conversation: @conversation).enabled? }
@@ -17,6 +18,13 @@ class Api::V1::Accounts::Conversations::JsitCommandsController < Api::V1::Accoun
 
   def ensure_ai_functions_enabled
     head :forbidden unless Current.account.jsit_ai_functions
+  end
+
+  # Turning the bot on for Sofia's own number loops the assistant answering itself.
+  def ensure_number_not_blocked
+    return unless params[:comando] == 'on'
+
+    head :forbidden if Jsit::BotBlocklist.blocked?(@conversation)
   end
 
   # update_columns skips the callbacks, so flipping the flag doesn't fire a

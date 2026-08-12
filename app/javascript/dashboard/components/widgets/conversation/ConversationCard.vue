@@ -222,7 +222,10 @@ watch(
         />
       </div>
       <div class="flex items-center mx-2 mt-1">
-        <JsitBotChip :conversation-id="chat.id" />
+        <JsitBotChip
+          :conversation-id="chat.id"
+          :phone-number="chat.meta?.sender?.phone_number"
+        />
       </div>
       <CardLabels
         v-if="showLabelsSection"

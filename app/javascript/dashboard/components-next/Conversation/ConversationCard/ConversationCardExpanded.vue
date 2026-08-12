@@ -168,7 +168,10 @@ const selectedModel = computed({
 
     <!-- RIGHT SECTION -->
     <div class="flex items-center justify-end gap-1.5 flex-shrink-0">
-      <JsitBotChip :conversation-id="chat.id" />
+      <JsitBotChip
+        :conversation-id="chat.id"
+        :phone-number="chat.meta?.sender?.phone_number"
+      />
       <div v-if="showLabelsSection" class="min-w-0 w-full">
         <CardLabels
           :labels="chat.labels"
