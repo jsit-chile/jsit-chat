@@ -265,6 +265,9 @@ en:
       delivery_status:
         error_code: 'Error code: %{error_code}'
     activity:
+      jsit_bot:
+        turned_on: 'Bot was turned on by %{user_name}'
+        turned_off: 'Bot was turned off by %{user_name}'
       captain:
         resolved: 'Conversation was marked resolved by %{user_name} due to inactivity'
         resolved_with_reason: 'Conversation was marked resolved by %{user_name} (%{reason})'

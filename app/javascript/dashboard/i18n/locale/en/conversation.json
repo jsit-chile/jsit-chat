@@ -124,6 +124,7 @@
         "TURN_OFF": "Turn the bot off for this conversation",
         "TURNED_ON": "Bot turned on for this conversation",
         "TURNED_OFF": "Bot turned off for this conversation",
+        "LAST_CHANGED_BY": "Last changed by {name}",
         "REPLY": "Generate an AI reply",
         "REPLY_REQUESTED": "AI reply requested",
         "ERROR": "Could not reach the automation service. Please try again."
