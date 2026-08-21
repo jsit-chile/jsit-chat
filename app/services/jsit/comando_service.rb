@@ -3,6 +3,10 @@
 # this service forwards the command to n8n.
 class Jsit::ComandoService
   DEFAULT_URL = 'https://workflows.jsit.cl/webhook/jchat-comando'.freeze
+  # Sofia runs on her own workflow, with her own webhook path.
+  ACCOUNT_URLS = {
+    2 => 'https://workflows.jsit.cl/webhook/jchat-comando-sofia'
+  }.freeze
   REQUEST_TIMEOUT = 20
   COMANDOS = %w[on off respond].freeze
 
@@ -31,9 +35,11 @@ class Jsit::ComandoService
   private
 
   # Each account has its own workflow in jWorkflows, and n8n cannot register the
-  # same webhook path twice, so the URL can be overridden per account.
+  # same webhook path twice, so every account gets its own URL: the env var wins
+  # (handy for staging), then the mapping above, then the shared default.
   def workflow_url
     ENV.fetch("JSIT_COMANDO_URL_#{@conversation.account_id}", nil).presence ||
+      ACCOUNT_URLS[@conversation.account_id] ||
       ENV.fetch('JSIT_COMANDO_URL', DEFAULT_URL)
   end
 
