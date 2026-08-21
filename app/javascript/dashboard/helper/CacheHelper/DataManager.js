@@ -41,7 +41,7 @@ export class DataManager {
   async replace({ modelName, data }) {
     this.validateModel(modelName);
 
-    this.db.clear(modelName);
+    await this.db.clear(modelName);
     return this.push({ modelName, data });
   }
 
@@ -50,12 +50,14 @@ export class DataManager {
 
     if (Array.isArray(data)) {
       const tx = this.db.transaction(modelName, 'readwrite');
+      // put, not add: a leftover record would abort the whole transaction and
+      // leave the store holding stale data under a fresh cache key.
       data.forEach(item => {
-        tx.store.add(item);
+        tx.store.put(item);
       });
       await tx.done;
     } else {
-      await this.db.add(modelName, data);
+      await this.db.put(modelName, data);
     }
   }
 

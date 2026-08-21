@@ -5,7 +5,20 @@ import ApiClient from './ApiClient';
 class CacheEnabledApiClient extends ApiClient {
   constructor(resource, options = {}) {
     super(resource, options);
-    this.dataManager = new DataManager(this.accountIdFromRoute);
+    this.cacheStore = null;
+  }
+
+  // These clients are module singletons, built when the bundle loads. In the
+  // PWA that happens at "/", before the router redirects to the account, so the
+  // account id is still empty and the cache used to land in a single shared
+  // database that mixed the inboxes of every account. Building the manager on
+  // demand keeps one database per account.
+  get dataManager() {
+    const accountId = this.accountIdFromRoute;
+    if (!this.cacheStore || this.cacheStore.accountId !== accountId) {
+      this.cacheStore = new DataManager(accountId);
+    }
+    return this.cacheStore;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -14,7 +27,7 @@ class CacheEnabledApiClient extends ApiClient {
   }
 
   get(cache = false) {
-    if (cache) {
+    if (cache && this.accountIdFromRoute) {
       return this.getWithCacheFallback();
     }
 
@@ -87,7 +100,9 @@ class CacheEnabledApiClient extends ApiClient {
     try {
       await this.dataManager.initDb();
 
-      this.dataManager.replace({
+      // The key is what makes the next session trust the cache, so it can only
+      // be stored once the records are actually written.
+      await this.dataManager.replace({
         modelName: this.cacheModelName,
         data: this.extractDataFromResponse(response),
       });
