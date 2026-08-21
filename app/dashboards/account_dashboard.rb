@@ -35,7 +35,8 @@ class AccountDashboard < Administrate::BaseDashboard
     status: Field::Select.with_options(collection: [%w[Active active], %w[Suspended suspended]]),
     account_users: Field::HasMany,
     custom_attributes: Field::String,
-    jsit_ai_functions: AiFunctionsField
+    jsit_ai_functions: AiFunctionsField,
+    jsit_bot_default_on: BotDefaultField
   }.merge(enterprise_attribute_types).freeze
 
   # COLLECTION_ATTRIBUTES
@@ -51,6 +52,7 @@ class AccountDashboard < Administrate::BaseDashboard
     conversations
     status
     jsit_ai_functions
+    jsit_bot_default_on
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES

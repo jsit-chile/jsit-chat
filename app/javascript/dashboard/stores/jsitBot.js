@@ -4,16 +4,22 @@ import ConversationApi from 'dashboard/api/inbox/conversation';
 
 // Holds the bot on/off state of every conversation in the account, fetched in a
 // single call so the conversation list does not hit the API per row.
+// The backend only sends the conversations that differ from the account
+// default, so an account where the bot answers everything (defaultEnabled)
+// reports the paused ones instead of the active ones.
 export const useJsitBotStore = defineStore('jsitBot', {
   state: () => ({
-    enabledIds: [],
+    defaultEnabled: false,
+    exceptionIds: [],
     pendingIds: [],
     isFetching: false,
   }),
 
   getters: {
     isEnabled: state => conversationId =>
-      state.enabledIds.includes(conversationId),
+      state.exceptionIds.includes(conversationId)
+        ? !state.defaultEnabled
+        : state.defaultEnabled,
     isPending: state => conversationId =>
       state.pendingIds.includes(conversationId),
   },
@@ -23,7 +29,8 @@ export const useJsitBotStore = defineStore('jsitBot', {
       this.isFetching = true;
       try {
         const { data } = await JsitBotApi.get();
-        this.enabledIds = data.enabled_conversation_ids || [];
+        this.defaultEnabled = data.default_enabled === true;
+        this.exceptionIds = data.exception_conversation_ids || [];
       } catch (error) {
         // Redis unreachable or not configured, keep whatever we have
       } finally {
@@ -51,8 +58,11 @@ export const useJsitBotStore = defineStore('jsitBot', {
     },
 
     setState(conversationId, enabled) {
-      const withoutId = this.enabledIds.filter(id => id !== conversationId);
-      this.enabledIds = enabled ? [...withoutId, conversationId] : withoutId;
+      const withoutId = this.exceptionIds.filter(id => id !== conversationId);
+      const isException = enabled !== this.defaultEnabled;
+      this.exceptionIds = isException
+        ? [...withoutId, conversationId]
+        : withoutId;
     },
   },
 });

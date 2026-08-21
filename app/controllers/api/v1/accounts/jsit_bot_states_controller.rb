@@ -2,6 +2,10 @@ class Api::V1::Accounts::JsitBotStatesController < Api::V1::Accounts::BaseContro
   def index
     return head :forbidden unless Current.account.jsit_ai_functions
 
-    render json: { enabled_conversation_ids: Jsit::BotStateService.new(account: Current.account).enabled_display_ids }
+    service = Jsit::BotStateService.new(account: Current.account)
+    render json: {
+      default_enabled: Current.account.jsit_bot_default_on,
+      exception_conversation_ids: service.exception_display_ids
+    }
   end
 end

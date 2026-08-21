@@ -681,6 +681,7 @@ Rails.application.routes.draw do
         post :seed, on: :member
         post :reset_cache, on: :member
         post :toggle_ai_functions, on: :member
+        post :toggle_bot_default, on: :member
       end
       resources :users, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
         delete :avatar, on: :member, action: :destroy_avatar

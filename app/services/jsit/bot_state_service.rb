@@ -1,7 +1,8 @@
-# Reads whether the bot is on. jWorkflows keeps a Redis key per conversation
-# while the bot is on, so that Redis is the source of truth. It is only
-# configured in production, so elsewhere (and if it is unreachable) the flag
-# mirrored on the conversation is used instead.
+# Reads whether the bot is on. jWorkflows keeps a Redis key per conversation,
+# so that Redis is the source of truth: the key means the bot is on, or the
+# opposite (the conversation is paused) on accounts with jsit_bot_default_on.
+# Redis is only configured in production, so elsewhere (and if it is
+# unreachable) the flag mirrored on the conversation is used instead.
 class Jsit::BotStateService
   DEFAULT_KEY_TEMPLATE = 'sofia:estado:{account_id}:{conversation_id}'.freeze
   REQUEST_TIMEOUT = 2
@@ -14,27 +15,33 @@ class Jsit::BotStateService
 
   def enabled?
     return false if Jsit::BotBlocklist.blocked?(@conversation)
-
-    raw_enabled?
-  end
-
-  # display_ids of the account conversations that currently have the bot on
-  def enabled_display_ids
-    raw_enabled_display_ids - Jsit::BotBlocklist.blocked_display_ids(@account)
-  end
-
-  private
-
-  def raw_enabled?
     return mirrored_state if endpoint.blank?
 
-    with_redis { |redis| redis.exists?(key) }
+    key_present? ? !default_on? : default_on?
   rescue StandardError => e
     log_failure(e)
     mirrored_state
   end
 
-  def raw_enabled_display_ids
+  # display_ids of the account conversations that differ from the account
+  # default: the ones with the bot on, or the paused ones when it defaults to on
+  def exception_display_ids
+    blocked = Jsit::BotBlocklist.blocked_display_ids(@account)
+    ids = keyed_display_ids
+    default_on? ? (ids + blocked).uniq : (ids - blocked)
+  end
+
+  def default_on?
+    @account.jsit_bot_default_on
+  end
+
+  private
+
+  def key_present?
+    with_redis { |redis| redis.exists?(key) }
+  end
+
+  def keyed_display_ids
     return mirrored_display_ids if endpoint.blank?
 
     with_redis { |redis| scan_display_ids(redis) }
@@ -96,12 +103,18 @@ class Jsit::BotStateService
             .gsub(/\{conv(ersation_id)?\}/, conversation_id)
   end
 
+  # A conversation nobody has touched yet follows the account default.
   def mirrored_state
-    @conversation.present? && @conversation.custom_attributes['jsit_bot_enabled'] == true
+    return default_on? if @conversation.blank?
+
+    flag = @conversation.custom_attributes['jsit_bot_enabled']
+    flag.nil? ? default_on? : flag == true
   end
 
+  # Same idea as the Redis scan: the conversations that differ from the default.
   def mirrored_display_ids
-    @account.conversations.where("custom_attributes->>'jsit_bot_enabled' = 'true'").pluck(:display_id)
+    flag = default_on? ? 'false' : 'true'
+    @account.conversations.where("custom_attributes->>'jsit_bot_enabled' = ?", flag).pluck(:display_id)
   end
 
   def log_failure(error)

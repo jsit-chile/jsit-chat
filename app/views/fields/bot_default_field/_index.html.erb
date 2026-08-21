@@ -1,0 +1,5 @@
+<%= button_to field.to_s,
+      toggle_bot_default_super_admin_account_path(field.resource),
+      method: :post,
+      class: field.enabled? ? 'button' : 'button button--alt',
+      title: field.enabled? ? 'El bot responde salvo que se pause la conversación. Cambiar a activación manual' : 'El bot responde solo en las conversaciones donde se active. Cambiar a respuesta automática' %>

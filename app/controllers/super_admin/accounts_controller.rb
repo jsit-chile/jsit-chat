@@ -77,6 +77,18 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
     redirect_back(fallback_location: [namespace, :accounts], notice: I18n.t(notice_key, name: account.name))
   end
 
+  # Flips whether the bot answers every conversation of the account by default.
+  # jWorkflows reads the same Redis key either way, only the meaning changes: on
+  # these accounts the key marks the paused conversations.
+  def toggle_bot_default
+    account = requested_resource
+    enabled = !account.jsit_bot_default_on
+    account.update!(custom_attributes: account.custom_attributes.merge('jsit_bot_default_on' => enabled))
+
+    notice_key = enabled ? 'super_admin.bot_default_on' : 'super_admin.bot_default_off'
+    redirect_back(fallback_location: [namespace, :accounts], notice: I18n.t(notice_key, name: account.name))
+  end
+
   def destroy
     account = Account.find(params[:id])
 

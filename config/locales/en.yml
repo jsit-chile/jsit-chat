@@ -558,9 +558,12 @@ en:
     label:
       account:
         jsit_ai_functions: 'Funciones AI'
+        jsit_bot_default_on: 'Bot por defecto'
   super_admin:
     ai_functions_enabled: 'Funciones AI activadas para %{name}'
     ai_functions_disabled: 'Funciones AI desactivadas para %{name}'
+    bot_default_on: 'El bot responde por defecto en %{name}; la pausa es por conversación'
+    bot_default_off: 'El bot se activa por conversación en %{name}'
     push_diagnostics:
       user_not_found: 'User not found.'
       no_subscriptions_to_test: 'Select at least one subscription to test.'

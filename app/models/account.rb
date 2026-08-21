@@ -180,6 +180,13 @@ class Account < ApplicationRecord
     custom_attributes['jsit_ai_functions'] == true
   end
 
+  # Accounts whose bot answers every conversation unless someone pauses it, like
+  # Sofia. There the jWorkflows Redis key marks the paused conversations instead
+  # of the active ones, so the on/off state is read the other way around.
+  def jsit_bot_default_on
+    custom_attributes['jsit_bot_default_on'] == true
+  end
+
   private
 
   def notify_creation
