@@ -15,7 +15,7 @@ class Jsit::ComandoService
     return false unless COMANDOS.include?(@comando)
 
     response = HTTParty.post(
-      ENV.fetch('JSIT_COMANDO_URL', DEFAULT_URL),
+      workflow_url,
       headers: { 'Content-Type' => 'application/json', 'X-JSIT-Secret' => ENV.fetch('JSIT_COMANDO_SECRET', '') },
       body: payload.to_json,
       timeout: REQUEST_TIMEOUT
@@ -29,6 +29,13 @@ class Jsit::ComandoService
   end
 
   private
+
+  # Each account has its own workflow in jWorkflows, and n8n cannot register the
+  # same webhook path twice, so the URL can be overridden per account.
+  def workflow_url
+    ENV.fetch("JSIT_COMANDO_URL_#{@conversation.account_id}", nil).presence ||
+      ENV.fetch('JSIT_COMANDO_URL', DEFAULT_URL)
+  end
 
   def payload
     {
