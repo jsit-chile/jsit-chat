@@ -2,7 +2,7 @@
 # The shared secret lives only on the server, so the dashboard posts here and
 # this service forwards the command to n8n.
 class Jsit::ComandoService
-  DEFAULT_URL = 'https://workflows.jsit.cl/webhook/jchat-comando'.freeze
+  DEFAULT_URL = 'https://workflows.jsit.cl/webhook/jchat-comando-sofia'.freeze
   REQUEST_TIMEOUT = 20
   COMANDOS = %w[on off respond].freeze
 
