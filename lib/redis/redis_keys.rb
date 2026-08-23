@@ -82,4 +82,10 @@ module Redis::RedisKeys
 
   ## Account Email Rate Limiting
   ACCOUNT_OUTBOUND_EMAIL_COUNT_KEY = 'OUTBOUND_EMAIL_COUNT::%<account_id>d::%<date>s'.freeze
+
+  ## jSystem badge
+  # Digest of the last payload jSystem acknowledged with a 200; its TTL is the heartbeat
+  JSYSTEM_BADGE_LAST_PUSH = 'JSYSTEM_BADGE::V1::ACCOUNT::%<account_id>d::LAST_PUSH'.freeze
+  # At-most-one badge push per account in-flight; further enqueues are skipped
+  JSYSTEM_BADGE_IN_FLIGHT = 'JSYSTEM_BADGE::V1::ACCOUNT::%<account_id>d::IN_FLIGHT'.freeze
 end

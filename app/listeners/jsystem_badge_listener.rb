@@ -1,5 +1,9 @@
 # Triggers a near real-time jSystem badge push whenever conversation state that can
 # affect the "pending attention" count changes. The cron job remains the robust backup.
+#
+# conversation_updated is deliberately not handled: of the attributes that fire it,
+# status and assignee already have their own event here, and the rest (labels,
+# priority, custom attributes, team) never move the badge.
 class JsystemBadgeListener < BaseListener
   def conversation_created(event)
     trigger_for_conversation(event)
@@ -9,16 +13,16 @@ class JsystemBadgeListener < BaseListener
     trigger_for_conversation(event)
   end
 
-  def conversation_updated(event)
-    trigger_for_conversation(event)
-  end
-
   def assignee_changed(event)
     trigger_for_conversation(event)
   end
 
+  # Only incoming messages move the count, and this account is a bot that answers
+  # on its own, so outgoing/activity/template messages would be pure noise.
   def message_created(event)
-    _message, account = extract_message_and_account(event)
+    message, account = extract_message_and_account(event)
+    return unless message.incoming?
+
     enqueue(account)
   end
 
@@ -32,6 +36,6 @@ class JsystemBadgeListener < BaseListener
   def enqueue(account)
     return unless account&.id == JsystemBadgePushJob::ACCOUNT_ID
 
-    JsystemBadgePushJob.perform_later
+    JsystemBadgePushJob.enqueue_coalesced
   end
 end

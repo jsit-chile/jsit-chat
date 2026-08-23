@@ -75,9 +75,10 @@ remove_orphan_conversations_job:
   class: 'Internal::RemoveOrphanConversationsJob'
   queue: housekeeping
 
-# executed every minute as a robust backup for the jSystem badge push
-# (event listeners handle near real-time updates)
+# executed every two minutes: fires the heartbeat once the pushed payload expires and
+# covers any event the listeners missed (they handle near real-time updates).
+# Runs with no change are suppressed by the payload digest and generate no traffic.
 jsystem_badge_push_job:
-  cron: '* * * * *'
+  cron: '*/2 * * * *'
   class: 'JsystemBadgePushJob'
   queue: low

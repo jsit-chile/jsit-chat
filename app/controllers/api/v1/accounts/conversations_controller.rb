@@ -166,7 +166,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
     ::Conversations::UnreadCounts::Notifier.new(@conversation).perform
     # update_columns skips callbacks, so JsystemBadgeListener never fires here;
     # enqueue directly so reading/unreading syncs jSystem without the cron lag.
-    JsystemBadgePushJob.perform_later if @conversation.account_id == JsystemBadgePushJob::ACCOUNT_ID
+    JsystemBadgePushJob.enqueue_coalesced if @conversation.account_id == JsystemBadgePushJob::ACCOUNT_ID
   end
 
   def should_update_last_seen?
