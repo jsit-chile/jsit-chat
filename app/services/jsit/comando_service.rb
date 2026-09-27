@@ -48,7 +48,9 @@ class Jsit::ComandoService
       comando: @comando,
       account_id: @conversation.account_id,
       conversation_id: @conversation.display_id,
-      wa_id: Jsit::WaId.for(@conversation)
+      wa_id: Jsit::WaId.for(@conversation),
+      # Instagram has no phone number, so the workflow routes on the channel
+      channel: @conversation.inbox.channel_type
     }
   end
 
