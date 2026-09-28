@@ -8,6 +8,9 @@
   BUNDLE_WITHOUT = "development:test"
 
 [deploy]
+  # Runs once per deploy, before the new release takes traffic. startCommand must
+  # stay Puma-only (no shell to chain commands), so migrations live here.
+  preDeployCommand = "bundle exec rails db:migrate"
   # Boot Puma directly: it reads ENV['PORT'] in Ruby (config/puma.rb), avoiding
   # the "$PORT" shell-expansion bug that breaks `rails server -p $PORT` on Railway
   # (Railway runs startCommand without a shell). Touching this file also forces
