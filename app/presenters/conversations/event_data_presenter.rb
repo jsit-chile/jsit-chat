@@ -13,7 +13,7 @@ class Conversations::EventDataPresenter < SimpleDelegator
       status: status,
       custom_attributes: custom_attributes,
       snoozed_until: snoozed_until,
-      unread_count: unread_incoming_messages.count,
+      **push_read_state,
       first_reply_created_at: first_reply_created_at,
       priority: priority,
       waiting_since: waiting_since.to_i,
@@ -23,7 +23,7 @@ class Conversations::EventDataPresenter < SimpleDelegator
 
   # Like #push_data but with message text normalized for external integrations (webhooks).
   def webhook_data
-    push_data.merge(messages: webhook_push_messages)
+    push_data.except(:reads_by_user).merge(messages: webhook_push_messages)
   end
 
   private
@@ -34,6 +34,10 @@ class Conversations::EventDataPresenter < SimpleDelegator
 
   def webhook_push_messages
     [messages.where(account_id: account_id).chat.last&.webhook_push_event_data].compact
+  end
+
+  def push_read_state
+    { unread_count: unread_incoming_messages.count, reads_by_user: reads_by_user }
   end
 
   def push_meta

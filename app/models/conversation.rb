@@ -102,6 +102,18 @@ class Conversation < ApplicationRecord
       .where(never_seen.or(new_reply_since_seen))
       .distinct
   }
+  # Same as with_unread_incoming_messages, but against the given agent's own read state.
+  scope :unread_for, lambda { |user|
+    reads_join = sanitize_sql_array(
+      ['LEFT JOIN conversation_reads ON conversation_reads.conversation_id = conversations.id AND conversation_reads.user_id = ?', user.id]
+    )
+
+    joins(:messages)
+      .joins(reads_join)
+      .merge(Message.incoming.reorder(nil))
+      .where('conversation_reads.last_seen_at IS NULL OR messages.created_at > conversation_reads.last_seen_at')
+      .distinct
+  }
 
   scope :last_user_message_at, lambda {
     joins(
@@ -123,6 +135,7 @@ class Conversation < ApplicationRecord
   has_many :messages, dependent: :destroy_async, autosave: true
   has_one :csat_survey_response, dependent: :destroy_async
   has_many :conversation_participants, dependent: :destroy_async
+  has_many :conversation_reads, dependent: :delete_all
   has_many :notifications, as: :primary_actor, dependent: :destroy_async
   has_many :attachments, through: :messages
   has_many :reporting_events, dependent: :destroy_async
@@ -191,6 +204,40 @@ class Conversation < ApplicationRecord
     unread_messages.where(account_id: account_id).incoming.last(10)
   end
 
+  # API clients other than agents (bots, platform apps) keep seeing the shared read state.
+  def last_seen_at_for(user)
+    return agent_last_seen_at unless user.is_a?(User)
+
+    conversation_reads.find_by(user_id: user.id)&.last_seen_at
+  end
+
+  def unread_incoming_count_for(user)
+    unread_incoming_count_since(last_seen_at_for(user))
+  end
+
+  def mark_seen_by!(user, last_seen_at)
+    return unless user.is_a?(User)
+
+    # rubocop:disable Rails/SkipsModelValidations
+    ConversationRead.upsert({ conversation_id: id, user_id: user.id, last_seen_at: last_seen_at }, unique_by: %i[conversation_id user_id])
+    # rubocop:enable Rails/SkipsModelValidations
+    # The upsert skips callbacks, so JsystemBadgeListener never fires on a read;
+    # enqueue directly so reading/unreading syncs jSystem without the cron lag.
+    JsystemBadgePushJob.enqueue_coalesced if account_id == JsystemBadgePushJob::ACCOUNT_ID
+  end
+
+  # Realtime events go to every agent with a single payload, so each one carries the
+  # read state of all agents and the dashboard picks its own. Keys are strings because
+  # the payload goes through ActiveJob, which rejects integer hash keys.
+  def reads_by_user
+    reads = conversation_reads.pluck(:user_id, :last_seen_at).to_h
+    counts = Hash.new { |cache, seen| cache[seen] = unread_incoming_count_since(seen) }
+
+    account.account_users.pluck(:user_id).to_h do |user_id|
+      [user_id.to_s, { agent_last_seen_at: reads[user_id].to_i, unread_count: counts[reads[user_id]] }]
+    end
+  end
+
   def cached_label_list_array
     (cached_label_list || '').split(',').map(&:strip)
   end
@@ -232,6 +279,13 @@ class Conversation < ApplicationRecord
   end
 
   private
+
+  # Capped at 10 like unread_incoming_messages, which is what the badges showed so far.
+  def unread_incoming_count_since(last_seen_at)
+    scope = messages.where(account_id: account_id).incoming
+    scope = scope.created_since(last_seen_at) if last_seen_at
+    scope.limit(10).count
+  end
 
   def execute_after_update_commit_callbacks
     handle_resolved_status_change

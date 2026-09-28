@@ -43,7 +43,7 @@ class ActionCableListener < BaseListener
     conversation = message.conversation
     tokens = user_tokens(account, conversation.inbox.members) + contact_tokens(conversation.contact_inbox, message)
 
-    broadcast(account, tokens, MESSAGE_CREATED, message.push_event_data)
+    broadcast(account, tokens, MESSAGE_CREATED, message.broadcast_event_data)
   end
 
   def message_updated(event)

@@ -66,11 +66,11 @@ class JsystemBadgePushJob < ApplicationJob
   end
 
   # The badge counts the conversations the dashboard shows as unread (open, with
-  # unread incoming messages). The breakdown carries the other buckets plus the
-  # display_ids of the unread conversations so jSystem can link to each one.
+  # unread incoming messages) to the agent in JSYSTEM_BADGE_USER_ID, since read state
+  # is per agent; without it, to nobody. The breakdown carries the other buckets plus
+  # the display_ids of the unread conversations so jSystem can link to each one.
   def compute_metrics(account)
-    unread_ids = account.conversations.open.with_unread_incoming_messages
-                        .order(:display_id).pluck(:display_id)
+    unread_ids = unread_conversations(account).order(:display_id).pluck(:display_id)
 
     {
       count: unread_ids.size,
@@ -81,6 +81,11 @@ class JsystemBadgePushJob < ApplicationJob
         conversation_ids: unread_ids.first(MAX_CONVERSATION_IDS)
       }
     }
+  end
+
+  def unread_conversations(account)
+    user = account.users.find_by(id: ENV.fetch('JSYSTEM_BADGE_USER_ID', nil))
+    user ? account.conversations.open.unread_for(user) : account.conversations.open.with_unread_incoming_messages
   end
 
   def payload(account_id, metrics)

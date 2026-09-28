@@ -113,7 +113,7 @@ class ConversationFinder
     when 'assigned'
       @conversations = @conversations.assigned
     when 'unread'
-      @conversations = @conversations.with_unread_incoming_messages
+      @conversations = @conversations.unread_for(current_user)
     end
     @conversations
   end
@@ -175,7 +175,7 @@ class ConversationFinder
       assigned_count: all_count - unassigned_count,
       unassigned_count: unassigned_count,
       all_count: all_count,
-      unread_count: @conversations.with_unread_incoming_messages.count
+      unread_count: @conversations.unread_for(current_user).count
     }
   end
 

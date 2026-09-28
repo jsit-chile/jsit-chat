@@ -31,6 +31,15 @@ export const hasMessageFailedWithExternalError = pendingMessage => {
   return status === MESSAGE_STATUS.FAILED && externalError !== '';
 };
 
+// Realtime payloads are shared by every agent and carry each one's read state;
+// keep the current agent's so read/unread stays individual.
+const withOwnReadState = (conversation, userId) => {
+  if (!conversation?.reads_by_user) return conversation;
+
+  const { reads_by_user: readsByUser, ...rest } = conversation;
+  return { ...rest, ...readsByUser[userId] };
+};
+
 // actions
 const actions = {
   getConversation: async ({ commit }, conversationId) => {
@@ -320,7 +329,14 @@ const actions = {
     }
   },
 
-  addMessage({ commit, rootGetters }, message) {
+  addMessage({ commit, rootGetters }, payload) {
+    const message = {
+      ...payload,
+      conversation: withOwnReadState(
+        payload.conversation,
+        rootGetters?.getCurrentUserID
+      ),
+    };
     commit(types.ADD_MESSAGE, message);
     if (message.message_type === MESSAGE_TYPE.INCOMING) {
       commit(types.SET_CONVERSATION_CAN_REPLY, {
@@ -369,7 +385,14 @@ const actions = {
     }
   },
 
-  addConversation({ commit, state, dispatch, rootState }, conversation) {
+  addConversation(
+    { commit, state, dispatch, rootState, rootGetters },
+    payload
+  ) {
+    const conversation = withOwnReadState(
+      payload,
+      rootGetters?.getCurrentUserID
+    );
     const { currentInbox, appliedFilters } = state;
     const {
       inbox_id: inboxId,
@@ -403,7 +426,11 @@ const actions = {
     }
   },
 
-  updateConversation({ commit, dispatch, rootGetters }, conversation) {
+  updateConversation({ commit, dispatch, rootGetters }, payload) {
+    const conversation = withOwnReadState(
+      payload,
+      rootGetters?.getCurrentUserID
+    );
     const sender = conversation.meta?.sender;
 
     commit(types.UPDATE_CONVERSATION, conversation);

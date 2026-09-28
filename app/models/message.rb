@@ -155,6 +155,13 @@ class Message < ApplicationRecord
     merge_sender_attributes(data)
   end
 
+  # MESSAGE_CREATED goes to every agent with one payload, so it carries each agent's read state.
+  def broadcast_event_data
+    data = push_event_data
+    data[:conversation][:reads_by_user] = conversation.reads_by_user
+    data
+  end
+
   def conversation_push_event_data
     {
       assignee_id: conversation.assignee_id,

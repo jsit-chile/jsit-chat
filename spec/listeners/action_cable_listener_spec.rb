@@ -30,7 +30,7 @@ describe ActionCableListener do
           agent.pubsub_token, admin.pubsub_token, conversation.contact_inbox.pubsub_token
         ),
         'message.created',
-        message.push_event_data.merge(account_id: account.id)
+        message.broadcast_event_data.merge(account_id: account.id)
       )
       listener.message_created(event)
     end
@@ -48,7 +48,7 @@ describe ActionCableListener do
           agent.pubsub_token, admin.pubsub_token, conversation.contact_inbox.pubsub_token, verified_contact_inbox.pubsub_token
         ),
         'message.created',
-        message.push_event_data.merge(account_id: account.id)
+        message.broadcast_event_data.merge(account_id: account.id)
       )
       listener.message_created(event)
     end

@@ -4,6 +4,7 @@ class Notification::MarkConversationReadService
   def perform
     return unless user.is_a?(User)
 
+    conversation.mark_seen_by!(user, read_at)
     notifications.find_each do |notification|
       notification.update!(read_at: read_at)
     end

@@ -116,7 +116,8 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
     # High-traffic accounts generate excessive DB writes when agents frequently switch between conversations.
     # Throttle last_seen updates to once per hour when there are no unread messages to reduce DB load.
     # Always update immediately if there are unread messages to maintain accurate read/unread state.
-    # Visiting a conversation should clear any unread inbox notifications for this conversation.
+    # Visiting a conversation should clear any unread inbox notifications for this conversation
+    # and mark it read for this agent only (conversation_reads).
     Notification::MarkConversationReadService.new(user: Current.user, account: Current.account, conversation: @conversation).perform
     return update_last_seen_on_conversation(DateTime.now.utc, true) if assignee? && @conversation.assignee_unread_messages.any?
     return update_last_seen_on_conversation(DateTime.now.utc, false) if !assignee? && @conversation.unread_messages.any?
@@ -130,6 +131,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   def unread
     last_incoming_message = @conversation.messages.incoming.last
     last_seen_at = last_incoming_message.created_at - 1.second if last_incoming_message.present?
+    @conversation.mark_seen_by!(Current.user, last_seen_at)
     update_last_seen_on_conversation(last_seen_at, true)
   end
 
@@ -164,9 +166,6 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
     # rubocop:enable Rails/SkipsModelValidations
 
     ::Conversations::UnreadCounts::Notifier.new(@conversation).perform
-    # update_columns skips callbacks, so JsystemBadgeListener never fires here;
-    # enqueue directly so reading/unreading syncs jSystem without the cron lag.
-    JsystemBadgePushJob.enqueue_coalesced if @conversation.account_id == JsystemBadgePushJob::ACCOUNT_ID
   end
 
   def should_update_last_seen?
