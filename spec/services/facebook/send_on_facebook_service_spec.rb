@@ -17,7 +17,7 @@ describe Facebook::SendOnFacebookService do
   let!(:facebook_inbox) { create(:inbox, channel: facebook_channel, account: account) }
   let!(:contact) { create(:contact, account: account) }
   let(:contact_inbox) { create(:contact_inbox, contact: contact, inbox: facebook_inbox) }
-  let(:conversation) { create(:conversation, contact: contact, inbox: facebook_inbox, contact_inbox: contact_inbox) }
+  let(:conversation) { create(:conversation, account: account, contact: contact, inbox: facebook_inbox, contact_inbox: contact_inbox) }
 
   describe '#perform' do
     context 'without reply' do
@@ -73,8 +73,7 @@ describe Facebook::SendOnFacebookService do
         expect(bot).to have_received(:deliver).with({
                                                       recipient: { id: contact_inbox.source_id },
                                                       message: { text: message.content },
-                                                      messaging_type: 'MESSAGE_TAG',
-                                                      tag: 'ACCOUNT_UPDATE'
+                                                      messaging_type: 'RESPONSE'
                                                     }, { page_id: facebook_channel.page_id })
         expect(bot).to have_received(:deliver).with({
                                                       recipient: { id: contact_inbox.source_id },
@@ -86,17 +85,16 @@ describe Facebook::SendOnFacebookService do
                                                           }
                                                         }
                                                       },
-                                                      messaging_type: 'MESSAGE_TAG',
-                                                      tag: 'ACCOUNT_UPDATE'
+                                                      messaging_type: 'RESPONSE'
                                                     }, { page_id: facebook_channel.page_id })
       end
 
-      it 'sends with HUMAN_AGENT tag when ENABLE_MESSENGER_CHANNEL_HUMAN_AGENT is enabled' do
-        with_modified_env ENABLE_MESSENGER_CHANNEL_HUMAN_AGENT: 'true' do
+      it 'sends with HUMAN_AGENT tag when outside the 24 hour window' do
+        travel_to(25.hours.from_now) do
           message = create(:message, message_type: 'outgoing', inbox: facebook_inbox, account: account, conversation: conversation)
           described_class.new(message: message).perform
           expect(bot).to have_received(:deliver).with(
-            hash_including(tag: 'HUMAN_AGENT'),
+            hash_including(messaging_type: 'MESSAGE_TAG', tag: 'HUMAN_AGENT'),
             { page_id: facebook_channel.page_id }
           )
         end
@@ -201,8 +199,7 @@ describe Facebook::SendOnFacebookService do
                                                           { content_type: 'text', payload: 'text 2', title: 'text 2' }
                                                         ]
                                                       },
-                                                      messaging_type: 'MESSAGE_TAG',
-                                                      tag: 'ACCOUNT_UPDATE'
+                                                      messaging_type: 'RESPONSE'
                                                     }, { page_id: facebook_channel.page_id })
       end
     end

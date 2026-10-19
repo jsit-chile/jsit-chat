@@ -47,10 +47,8 @@ class Facebook::SendOnFacebookService < Base::SendOnChannelService
   def fb_text_message_params
     {
       recipient: { id: contact.get_source_id(inbox.id) },
-      message: fb_text_message_payload,
-      messaging_type: 'MESSAGE_TAG',
-      tag: message_tag
-    }
+      message: fb_text_message_payload
+    }.merge(messaging_params)
   end
 
   def fb_text_message_payload
@@ -88,14 +86,21 @@ class Facebook::SendOnFacebookService < Base::SendOnChannelService
             url: attachment.download_url
           }
         }
-      },
-      messaging_type: 'MESSAGE_TAG',
-      tag: message_tag
-    }
+      }
+    }.merge(messaging_params)
   end
 
-  def message_tag
-    @message_tag ||= GlobalConfigService.load('ENABLE_MESSENGER_CHANNEL_HUMAN_AGENT', nil) ? 'HUMAN_AGENT' : 'ACCOUNT_UPDATE'
+  # Meta deprecated ACCOUNT_UPDATE and the other non-human tags (error 100/1893061).
+  # Within 24h of the last incoming message we reply as RESPONSE; outside it only HUMAN_AGENT is valid (needs Meta approval).
+  def messaging_params
+    return { messaging_type: 'RESPONSE' } if within_standard_window?
+
+    { messaging_type: 'MESSAGE_TAG', tag: 'HUMAN_AGENT' }
+  end
+
+  def within_standard_window?
+    last_incoming = conversation.last_incoming_message
+    last_incoming.present? && last_incoming.created_at > 24.hours.ago
   end
 
   def attachment_type(attachment)
