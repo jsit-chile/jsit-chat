@@ -41,6 +41,7 @@ const {
   isAWhatsAppChannel,
   isAPIInbox,
   isAnInstagramChannel,
+  isAFacebookInbox,
 } = useInbox();
 const { isAiFunctionsEnabled } = useJsitAiFunctions();
 
@@ -105,13 +106,16 @@ const hasMultipleInboxes = computed(
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 
 // WhatsApp reaches JSIT either through a native WhatsApp inbox or through an
-// API inbox bridged by n8n, and Instagram has its own jWorkflows flow, so the
-// bot controls show up on all of them, as long as the account has the AI
-// functions switch on in the super admin console.
+// API inbox bridged by n8n, and Instagram and Facebook have their own
+// jWorkflows flows, so the bot controls show up on all of them, as long as the
+// account has the AI functions switch on in the super admin console.
 const showJsitBotActions = computed(
   () =>
     isAiFunctionsEnabled.value &&
-    (isAWhatsAppChannel.value || isAPIInbox.value || isAnInstagramChannel.value)
+    (isAWhatsAppChannel.value ||
+      isAPIInbox.value ||
+      isAnInstagramChannel.value ||
+      isAFacebookInbox.value)
 );
 
 const copyConversationId = async () => {
